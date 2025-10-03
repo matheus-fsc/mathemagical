@@ -51,11 +51,84 @@
             border-radius: 5px;
             display: none;
         }
+        
+        /* Audio Permission Modal */
+        .audio-permission-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .audio-permission-content {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+            border: 3px solid #FFD700;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        }
+        
+        .audio-permission-title {
+            font-size: 24px;
+            color: #FFD700;
+            margin-bottom: 15px;
+        }
+        
+        .audio-permission-text {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 25px;
+            color: #ecf0f1;
+        }
+        
+        .audio-permission-button {
+            background: #e74c3c;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        .audio-permission-button:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+        }
     </style>
 </head>
 <body>
     <!-- Fullscreen Game Canvas -->
     <canvas id="gameCanvas"></canvas>
+    
+    <!-- Audio Permission Modal -->
+    <div class="audio-permission-modal" id="audioPermissionModal">
+        <div class="audio-permission-content">
+            <div class="audio-permission-title">🎵 Aventura Sonora</div>
+            <div class="audio-permission-text">
+                Para uma experiência completa, este jogo usa efeitos sonoros e música de fundo. 
+                <br><br>
+                <strong>Clique para permitir áudio e começar sua aventura!</strong>
+            </div>
+            <button class="audio-permission-button" onclick="enableAudio()">
+                🗡️ Iniciar Aventura com Som
+            </button>
+        </div>
+    </div>
     
     <!-- Debug Info (Hidden by default) -->
     <div class="debug-info" id="debugInfo">
@@ -94,6 +167,38 @@
 <script src="core/gameClient.js"></script>
 
     <script>
+        // ===== SISTEMA DE PERMISSÃO DE ÁUDIO =====
+        let audioEnabled = false;
+        let audioManager = null;
+        
+        // Função para habilitar áudio após interação do usuário
+        function enableAudio() {
+            console.log('🎵 Usuário solicitou habilitação de áudio');
+            audioEnabled = true;
+            
+            // Esconder modal
+            const modal = document.getElementById('audioPermissionModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            
+            // Tocar um som de teste para "desbloquear" o contexto de áudio
+            if (audioManager) {
+                // Reproduzir um som silencioso para ativar o contexto
+                const testAudio = new Audio();
+                testAudio.volume = 0;
+                testAudio.play().then(() => {
+                    console.log('✅ Contexto de áudio desbloqueado');
+                    // Iniciar música de fundo se disponível
+                    if (gameClient && gameClient.areaManager) {
+                        gameClient.areaManager.initializeAreaAudio();
+                    }
+                }).catch(e => {
+                    console.log('⚠️ Ainda não foi possível desbloquear o áudio:', e);
+                });
+            }
+        }
+        
         // Inicialização do jogo
         let gameClient = null;
 
@@ -144,6 +249,12 @@
                     // Iniciar música de fundo contínua
                     startBackgroundMusic(src = 'songs/backgroundsond.mp3', volume = 0.3) {
                         try {
+                            // Verificar se áudio foi habilitado pelo usuário
+                            if (!audioEnabled) {
+                                console.log('🔇 Áudio não habilitado - música de fundo não iniciada');
+                                return;
+                            }
+                            
                             // Se já está tocando a mesma música, não reiniciar
                             if (this.backgroundMusicSrc === src && this.isBackgroundPlaying) {
                                 console.log('🎵 Música de fundo já está tocando:', src);
@@ -216,6 +327,12 @@
                     // Método otimizado para reprodução instantânea (efeitos sonoros)
                     playAudioFast(src = 'songs/tp_song.mp3') {
                         try {
+                            // Verificar se áudio foi habilitado pelo usuário
+                            if (!audioEnabled) {
+                                console.log('🔇 Áudio não habilitado - efeito sonoro não reproduzido');
+                                return;
+                            }
+                            
                             const audio = this.loadAudio(src);
                             
                             // Se já está carregado, reproduzir imediatamente
@@ -236,6 +353,12 @@
                     // Método original (mantido para compatibilidade)
                     playAudio(src = 'songs/tp_song.mp3') {
                         try {
+                            // Verificar se áudio foi habilitado pelo usuário
+                            if (!audioEnabled) {
+                                console.log('🔇 Áudio não habilitado - efeito sonoro não reproduzido');
+                                return;
+                            }
+                            
                             const audio = this.loadAudio(src);
                             audio.currentTime = 0; // Restart from beginning
                             const playPromise = audio.play();
