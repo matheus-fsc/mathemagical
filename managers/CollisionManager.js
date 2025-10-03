@@ -23,6 +23,17 @@ class CollisionManager {
             debug: true
         });
 
+        // Nova caixa de colisão personalizada
+        this.addStaticCollider('up', 'custom_wall', {
+            x: 0,
+            y: 199,
+            width: 222,
+            height: 153, // 352 - 199
+            type: 'wall',
+            solid: true,
+            debug: true
+        });
+
         // Futuro: adicionar mais colisões
         // this.addStaticCollider('down', 'tree_01', { x: 200, y: 150, width: 64, height: 64 });
         // this.addTrigger('up', 'portal_zone', { x: 300, y: 200, width: 100, height: 50 });
