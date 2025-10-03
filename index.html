@@ -349,9 +349,6 @@
                 // Iniciar game loop
                 startGameLoop();
                 
-                // Atualizar status do jogo
-                updateGameStatus();
-                
                 console.log('🎮 Blog interativo inicializado com sucesso!');
                 
                 // ===== CONEXÃO AUTOMÁTICA AO SERVIDOR =====
@@ -438,26 +435,6 @@
             }
             
             requestAnimationFrame(gameLoop);
-        }
-
-        // Atualizar status do jogo
-        function updateGameStatus() {
-            const statusElement = document.getElementById('gameStatus');
-            
-            setInterval(() => {
-                if (gameClient) {
-                    let status = '🔴 Parado';
-                    
-                    if (gameClient.gameState.isConnected) {
-                        const playerCount = gameClient.gameState.players ? Object.keys(gameClient.gameState.players).length : 1;
-                        status = `🟢 Multiplayer (${playerCount} jogador${playerCount > 1 ? 'es' : ''})`;
-                    } else if (gameClient.gameState.isGameRunning) {
-                        status = '🟡 Modo Aventura Solo';
-                    }
-                    
-                    statusElement.textContent = status;
-                }
-            }, 1000);
         }
 
         // Função para obter coordenadas do mouse em relação a uma div/element
@@ -764,14 +741,8 @@
                         point.audioPlayed = true; // Marcar como tocado
                         console.log(`🚪 Personagem colidiu com área de teleporte! Player: (${player.x.toFixed(1)}, ${player.y.toFixed(1)}) Dimensões: ${player.width || 32}x${player.height || 32}`);
                         
-                        // Reproduzir áudio e redirecionar
+                        // Reproduzir áudio e redirecionar (redirecionamento está na função playAudioImmediate)
                         this.playAudioImmediate('songs/tp_song.mp3');
-                        
-                        // Redirecionar para página do blog após delay para ouvir o áudio
-                        setTimeout(() => {
-                            console.log('🗡️ Portal Ativado! Redirecionando para o blog...');
-                            window.location.href = 'pages/blog.html';
-                        }, 1000); // 1000ms delay para garantir que o áudio toque
                     } else {
                         console.log('🔇 Áudio já foi tocado nesta entrada na área');
                     }
@@ -799,6 +770,14 @@
                         }, 100);
                         
                         console.log('🎵 Comando de reprodução enviado');
+                        
+                        // REDIRECIONAMENTO: Se for o som de teleporte, redirecionar após delay
+                        if (audioPath === 'songs/tp_song.mp3') {
+                            setTimeout(() => {
+                                console.log('🗡️ Portal Ativado! Redirecionando para o blog...');
+                                window.location.href = 'pages/blog.html';
+                            }, 1000); // 1000ms delay para garantir que o áudio toque
+                        }
                     } else {
                         console.error('❌ AudioManager não disponível');
                     }
