@@ -362,6 +362,11 @@ class GameClient {
             this.areaManager.checkTransitions(this.player);
         }
         
+        // Verificar interações com mouse (incluindo área do personagem)
+        if (this.mouseManager) {
+            this.mouseManager.checkInteractions();
+        }
+        
         // Enviar posição se mudou
         this.sendPositionIfChanged();
         

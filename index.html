@@ -621,8 +621,23 @@
 
             // Verificar se o personagem está dentro da área de interação
             checkPlayerInInteractionArea(point) {
-                const player = this.gameClient.player;
-                if (!player) return;
+                // Tentar múltiplas formas de acessar o player
+                let player = this.gameClient.player;
+                
+                // Se não encontrar, tentar pelo gameCore
+                if (!player && window.gameCore && window.gameCore.player) {
+                    player = window.gameCore.player;
+                }
+                
+                // Se ainda não encontrar, tentar pelo frameBasedGame
+                if (!player && this.gameClient.frameBasedGame && this.gameClient.frameBasedGame.player) {
+                    player = this.gameClient.frameBasedGame.player;
+                }
+                
+                if (!player) {
+                    console.log('🚫 Player não encontrado - verificando área só com mouse');
+                    return;
+                }
 
                 const playerPos = {
                     x: player.x,
@@ -635,21 +650,28 @@
                 // Personagem entrou na área de interação
                 if (isPlayerInside && !wasPlayerInside) {
                     point.playerInside = true;
-                    console.log('🚪 Personagem entrou na área de teleporte!');
                     
-                    // Reproduzir áudio automaticamente
-                    if (window.audioManager) {
-                        audioManager.playAudio('songs/tp_song.mp3');
+                    // Verificar se o áudio já foi tocado nesta sessão na área
+                    if (!point.audioPlayed) {
+                        point.audioPlayed = true; // Marcar como tocado
+                        console.log(`🚪 Personagem entrou na área de teleporte! Pos: (${playerPos.x.toFixed(1)}, ${playerPos.y.toFixed(1)})`);
+                        
+                        // Reproduzir áudio automaticamente (apenas uma vez)
+                        if (window.audioManager) {
+                            audioManager.playAudio('songs/tp_song.mp3');
+                        }
+                        
+                        console.log('🎵 Tocando tp_song.mp3 - Portal ativado!');
+                    } else {
+                        console.log('🔇 Áudio já foi tocado nesta entrada na área');
                     }
-                    
-                    // Feedback visual/sonoro opcional
-                    console.log('🎵 Tocando tp_song.mp3 - Portal ativado!');
                 }
                 
                 // Personagem saiu da área de interação
                 if (!isPlayerInside && wasPlayerInside) {
                     point.playerInside = false;
-                    console.log('🚶 Personagem saiu da área de teleporte');
+                    point.audioPlayed = false; // Reset do estado do áudio ao sair
+                    console.log('🚶 Personagem saiu da área de teleporte - áudio resetado');
                 }
             }
         }
