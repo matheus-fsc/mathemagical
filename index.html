@@ -145,13 +145,24 @@
     </div> <!-- End main-container -->
 
   <!-- Game Scripts -->
-<script src="socket.io.min.js"></script>
+<script src="socket.io.min.js?v=1.0.0"></script>
+<script>
+  // Debug: Verificar se Socket.io foi carregado
+  console.log('🔍 Socket.io disponível:', typeof io !== 'undefined' ? '✅ SIM' : '❌ NÃO');
+  if (typeof io !== 'undefined') {
+    console.log('📦 Socket.io version:', io.version || 'unknown');
+  }
+</script>
 <script src="config/serverConfig.js"></script>
 <script src="legacy/areaManager.js"></script>
 <script src="input/inputManager.js"></script>
 <script src="sprites/frameBasedSpriteManager.js"></script>
 <script src="legacy/frameBasedPlayer.js"></script>
 <script src="network/mockServer.js"></script>
+<script>
+  // Debug: Verificar se MockServer foi carregado
+  console.log('🤖 MockServer disponível:', typeof MockServer !== 'undefined' ? '✅ SIM' : '❌ NÃO');
+</script>
 <script src="network/networkManager.js"></script>
 <script src="network/multiplayerManager.js"></script>
 
