@@ -10,139 +10,79 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
     <link rel="apple-touch-icon" href="favicon.ico">
-    <!-- CSS Styles -->
-    <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/layout.css">
-    <link rel="stylesheet" href="styles/game.css">
-    <link rel="stylesheet" href="styles/buttons.css">
-    <link rel="stylesheet" href="styles/panels.css">
-    <link rel="stylesheet" href="styles/effects.css">
+    
+    <!-- Fullscreen Canvas Styles -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Courier New', monospace;
+        }
+        
+        #gameCanvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            object-fit: contain;
+            background: #000;
+        }
+        
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            color: #fff;
+            font-size: 12px;
+            z-index: 1000;
+            background: rgba(0,0,0,0.7);
+            padding: 5px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .interaction-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #FFD700;
+            font-size: 16px;
+            text-align: center;
+            z-index: 1000;
+            background: rgba(0,0,0,0.8);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid #FFD700;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
+            50% { opacity: 1; transform: translateX(-50%) scale(1.05); }
+        }
+    </style>
 </head>
 <body>
-    <!-- Main Container -->
-    <div class="main-container">
-        
-        <!-- Header Vintage -->
-        <header class="vintage-header">
-            <h1 class="title">🗡️ LINK'S ADVENTURE BLOG</h1>
-            <p class="subtitle">~ A Legendary Journey Through Hyrule & Code ~</p>
-        </header>
-
-        <!-- Game Section -->
-        <section class="game-section">
-            <div class="game-container">
-                <canvas id="gameCanvas"></canvas>
-                <div class="game-status" id="gameStatus">
-                    🟡 Modo Aventura Ativo
-                </div>
-                <div class="connection-status" id="connectionStatus" style="font-size: 12px; color: #666; margin-top: 5px; display: none;">
-                    🔄 Conectando...
-                </div>
-            </div>
-        </section>
-
-        <!-- Navigation Section -->
-        <section class="navigation-section">
-            <nav class="interactive-buttons">
-                <a href="#blog" class="zelda-button" data-target="blog" data-hitbox-x="0.15" data-hitbox-y="0.2">
-                    <span class="button-icon">📝</span>
-                    <span class="button-title">Blog Adventures</span>
-                    <span class="button-desc">Jornadas e descobertas</span>
-                </a>
-                
-                <a href="#projects" class="zelda-button" data-target="projects" data-hitbox-x="0.5" data-hitbox-y="0.2">
-                    <span class="button-icon">🛠️</span>
-                    <span class="button-title">Code Dungeons</span>
-                    <span class="button-desc">Projetos e experimentos</span>
-                </a>
-                
-                <a href="#gallery" class="zelda-button" data-target="gallery" data-hitbox-x="0.85" data-hitbox-y="0.2">
-                    <span class="button-icon">🖼️</span>
-                    <span class="button-title">Treasure Gallery</span>
-                    <span class="button-desc">Arte e capturas</span>
-                </a>
-                
-                <a href="#about" class="zelda-button" data-target="about" data-hitbox-x="0.15" data-hitbox-y="0.6">
-                    <span class="button-icon">👤</span>
-                    <span class="button-title">Hero's Profile</span>
-                    <span class="button-desc">Sobre o aventureiro</span>
-                </a>
-                
-                <a href="#links" class="zelda-button" data-target="links" data-hitbox-x="0.5" data-hitbox-y="0.6">
-                    <span class="button-icon">🔗</span>
-                    <span class="button-title">Sacred Links</span>
-                    <span class="button-desc">Conexões importantes</span>
-                </a>
-                
-                <a href="#contact" class="zelda-button" data-target="contact" data-hitbox-x="0.85" data-hitbox-y="0.6">
-                    <span class="button-icon">📬</span>
-                    <span class="button-title">Send a Message</span>
-                    <span class="button-desc">Fale com o herói</span>
-                </a>
-            </nav>
-        </section>
-
-        <!-- Info Section -->
-        <section class="info-section">
-            <div class="info-panel">
-                <h3>🎮 Como Navegar na Aventura</h3>
-                <p>
-                    Bem-vindo ao meu cantinho digital inspirado em Zelda! Use o Link para explorar e interagir com os elementos da página. 
-                    Move-se pelo mundo e ataque os botões dourados para navegar pelas diferentes seções do blog.
-                </p>
-        
-        <div class="controls-info">
-            <div class="control-item">
-                <span class="control-key">WASD / Setas:</span> Mover o Link
-            </div>
-            <div class="control-item">
-                    <div class="controls-info">
-                    <div class="control-item">
-                        <span class="control-key">WASD / Setas:</span> Mover Link
-                    </div>
-                    <div class="control-item">
-                        <span class="control-key">X / Z / Enter:</span> Atacar botões
-                    </div>
-                    <div class="control-item">
-                        <span class="control-key">F1:</span> Mostrar/ocultar debug
-                    </div>
-                    <div class="control-item">
-                        <span class="control-key">F2:</span> Reset posição
-                    </div>
-                    <div class="control-item">
-                        <span class="control-key">F4:</span> Reconectar servidor
-                    </div>
-                    <div class="control-item">
-                        <button id="testConnection" class="control-key" style="background: #4CAF50; color: white; border: none; padding: 5px 10px; cursor: pointer;">🔗 Testar Conexão</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="info-panel">
-                <h3>🌟 Sobre Este Blog</h3>
-                <p>
-                    Este é meu espaço pessoal onde compartilho aventuras em programação, projetos criativos e reflexões sobre tecnologia. 
-                    Inspirado na nostalgia dos primeiros sites da internet e na magia atemporal de The Legend of Zelda.
-                </p>
-                <p>
-                    Cada seção é uma dungeon diferente com seus próprios tesouros e segredos. Explore à vontade e descubra o que cada 
-                    área tem para oferecer! Os botões dourados são pontos de interação - aproxime-se e ataque para ativá-los.
-                </p>
-            </div>
-        </section>
-
-        <!-- Footer -->
-        <footer class="vintage-footer">
-            <p>⚔️ Link's Adventure Blog - Crafted with ❤️ and nostalgia ⚔️</p>
-            <div class="visitor-counter">
-                Visitors: 001337
-            </div>
-            <p style="font-size: 0.8rem; margin-top: 10px; color: #888;">
-                "It's dangerous to go alone! Take this website." - Old Man, 2025
-            </p>
-        </footer>
-        
-    </div> <!-- End main-container -->
+    <!-- Fullscreen Game Canvas -->
+    <canvas id="gameCanvas"></canvas>
+    
+    <!-- Debug Info (Hidden by default) -->
+    <div class="debug-info" id="debugInfo">
+        Debug Mode: ON
+    </div>
+    
+    <!-- Interaction Hint -->
+    <div class="interaction-hint" id="interactionHint">
+        🗡️ Explore o mundo e encontre o portal dourado para acessar o blog! 🗡️
+    </div>
 
   <!-- Game Scripts -->
 <script src="socket.io.min.js?v=1.0.0"></script>
@@ -394,7 +334,12 @@
                             if (window.audioManager) {
                                 audioManager.playAudio('songs/tp_song.mp3');
                             }
-                            alert(`🗡️ Portal Ativado! 🎵\nCoordenadas: (${mousePos.x.toFixed(1)}, ${mousePos.y.toFixed(1)})\nÁudio: tp_song.mp3`);
+                            
+                            // Redirecionar para página do blog após um pequeno delay para o áudio
+                            setTimeout(() => {
+                                console.log('🗡️ Portal Ativado! Redirecionando para o blog...');
+                                window.location.href = 'pages/blog.html';
+                            }, 500); // 500ms delay para ouvir o som
                         } else {
                             console.log('🚫 Esta interação só funciona na área UP');
                         }
@@ -941,12 +886,17 @@
                         point.audioPlayed = true; // Marcar como tocado
                         console.log(`🚪 Personagem colidiu com área de teleporte! Player: (${player.x.toFixed(1)}, ${player.y.toFixed(1)}) Dimensões: ${player.width || 32}x${player.height || 32}`);
                         
-                        // Reproduzir áudio automaticamente (apenas uma vez)
+                        // Reproduzir áudio e redirecionar
                         if (window.audioManager) {
                             audioManager.playAudio('songs/tp_song.mp3');
                         }
                         
-                        console.log('🎵 Tocando tp_song.mp3 - Portal ativado!');
+                        console.log('🎵 Portal ativado! Redirecionando para o blog...');
+                        
+                        // Redirecionar após delay para ouvir o áudio
+                        setTimeout(() => {
+                            window.location.href = 'pages/blog.html';
+                        }, 800); // 800ms delay para ouvir o som completo
                     } else {
                         console.log('🔇 Áudio já foi tocado nesta entrada na área');
                     }
