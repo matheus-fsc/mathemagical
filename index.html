@@ -188,6 +188,50 @@
                 gameClient = new GameClient();
                 await gameClient.init('gameCanvas');
                 
+                // Sistema de áudio
+                const audioManager = {
+                    audio: null,
+                    
+                    loadAudio(src) {
+                        if (!this.audio) {
+                            this.audio = new Audio(src);
+                            this.audio.preload = 'auto';
+                            this.audio.volume = 0.5; // Volume padrão 50%
+                        }
+                        return this.audio;
+                    },
+                    
+                    playAudio(src = 'songs/tp_song.mp3') {
+                        try {
+                            const audio = this.loadAudio(src);
+                            audio.currentTime = 0; // Restart from beginning
+                            const playPromise = audio.play();
+                            
+                            if (playPromise !== undefined) {
+                                playPromise
+                                    .then(() => {
+                                        console.log('🎵 Áudio reproduzido com sucesso:', src);
+                                    })
+                                    .catch(error => {
+                                        console.warn('⚠️ Autoplay bloqueado, necessária interação do usuário:', error);
+                                    });
+                            }
+                        } catch (error) {
+                            console.error('❌ Erro ao reproduzir áudio:', error);
+                        }
+                    },
+                    
+                    stopAudio() {
+                        if (this.audio) {
+                            this.audio.pause();
+                            this.audio.currentTime = 0;
+                        }
+                    }
+                };
+                
+                // Tornar o audioManager global
+                window.audioManager = audioManager;
+                
                 // Inicializar sistema de componentes
                 window.gameCore = new GameCore();
                 await gameCore.init('gameCanvas');
@@ -199,10 +243,10 @@
                 gameClient.mouseManager = new MouseInteractionManager(gameClient);
                 
                 // Ponto de interação na área "up" - coordenadas específicas
-                const interactionX = 337;      // top left x
-                const interactionY = 340;      // top left y
-                const interactionWidth = 76.9;  // bottom right (413.9) - top left (337)
-                const interactionHeight = 50.5; // bottom right (390.5) - top left (340)
+                const interactionX = 355;      // top left x
+                const interactionY = 362;      // top left y
+                const interactionWidth = 76.9;  // mantém o mesmo tamanho
+                const interactionHeight = 50.5; // mantém o mesmo tamanho
                 
                 gameClient.mouseManager.addInteractionPoint(
                     interactionX,        // x
@@ -212,7 +256,11 @@
                     (mousePos, point) => {
                         // Só funciona na área "up"
                         if (gameClient.areaManager && gameClient.areaManager.getCurrentArea() === 'up') {
-                            alert(`🗡️ Interação na área UP!\nCoordenadas: (${mousePos.x.toFixed(1)}, ${mousePos.y.toFixed(1)})`);
+                            // Reproduzir áudio de teleporte
+                            if (window.audioManager) {
+                                audioManager.playAudio('songs/tp_song.mp3');
+                            }
+                            alert(`🗡️ Portal Ativado! 🎵\nCoordenadas: (${mousePos.x.toFixed(1)}, ${mousePos.y.toFixed(1)})\nÁudio: tp_song.mp3`);
                         } else {
                             console.log('🚫 Esta interação só funciona na área UP');
                         }
@@ -445,28 +493,6 @@
                 console.log(`🗑️ Ponto de interação removido: ${id}`);
             }
 
-            // Verificar interações com mouse
-            checkInteractions() {
-                this.interactionPoints.forEach(point => {
-                    if (point.cooldown > 0) {
-                        point.cooldown--;
-                    }
-
-                    const wasHovered = point.isHovered;
-                    point.isHovered = this.isPointInside(this.currentMousePos, point);
-
-                    // Entrou na área
-                    if (point.isHovered && !wasHovered) {
-                        this.onPointEnter(point);
-                    }
-                    
-                    // Saiu da área
-                    if (!point.isHovered && wasHovered) {
-                        this.onPointLeave(point);
-                    }
-                });
-            }
-
             // Verificar se ponto está dentro da área
             isPointInside(mousePos, area) {
                 return mousePos.x >= area.x && 
@@ -543,6 +569,88 @@
                 }
                 
                 ctx.restore();
+            }
+
+            // Atualizar visibilidade das interações baseada na área atual
+            updateInteractionsForArea(currentArea) {
+                this.interactionPoints.forEach(point => {
+                    // Interação area_up_interaction só funciona na área "up"
+                    if (point.id === 'area_up_interaction') {
+                        point.visible = (currentArea === 'up');
+                        if (!point.visible) {
+                            point.isHovered = false; // Reset hover se não estiver visível
+                        }
+                    }
+                });
+            }
+
+            // Verificar interações - agora considera visibilidade
+            checkInteractions() {
+                const currentArea = this.gameClient.areaManager ? this.gameClient.areaManager.getCurrentArea() : 'down';
+                
+                this.interactionPoints.forEach(point => {
+                    // Só processar interações visíveis na área atual
+                    if (point.id === 'area_up_interaction' && currentArea !== 'up') {
+                        point.isHovered = false; // Reset hover se não estiver na área correta
+                        return; // Skip processamento
+                    }
+
+                    if (point.cooldown > 0) {
+                        point.cooldown--;
+                    }
+
+                    const wasHovered = point.isHovered;
+                    point.isHovered = this.isPointInside(this.currentMousePos, point);
+
+                    // Entrou na área
+                    if (point.isHovered && !wasHovered) {
+                        this.onPointEnter(point);
+                    }
+                    
+                    // Saiu da área
+                    if (!point.isHovered && wasHovered) {
+                        this.onPointLeave(point);
+                    }
+
+                    // Verificar se o personagem está dentro da área de interação (especial para area_up_interaction)
+                    if (point.id === 'area_up_interaction' && currentArea === 'up') {
+                        this.checkPlayerInInteractionArea(point);
+                    }
+                });
+            }
+
+            // Verificar se o personagem está dentro da área de interação
+            checkPlayerInInteractionArea(point) {
+                const player = this.gameClient.player;
+                if (!player) return;
+
+                const playerPos = {
+                    x: player.x,
+                    y: player.y
+                };
+
+                const wasPlayerInside = point.playerInside || false;
+                const isPlayerInside = this.isPointInside(playerPos, point);
+
+                // Personagem entrou na área de interação
+                if (isPlayerInside && !wasPlayerInside) {
+                    point.playerInside = true;
+                    console.log('🚪 Personagem entrou na área de teleporte!');
+                    
+                    // Reproduzir áudio automaticamente
+                    if (window.audioManager) {
+                        audioManager.playAudio('songs/tp_song.mp3');
+                    }
+                    
+                    // Feedback visual/sonoro opcional
+                    console.log('🎵 Tocando tp_song.mp3 - Portal ativado!');
+                }
+                
+                // Personagem saiu da área de interação
+                if (!isPlayerInside && wasPlayerInside) {
+                    point.playerInside = false;
+                    console.log('🚶 Personagem saiu da área de teleporte');
+                }
             }
         }
 
