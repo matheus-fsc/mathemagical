@@ -163,13 +163,33 @@ class AreaManager {
     // Renderizar background da área atual
     renderBackground(ctx) {
         const backgroundImg = this.backgroundImages.get(this.currentArea);
-        if (backgroundImg) {
-            // Desenhar background ocupando todo o canvas
-            ctx.drawImage(backgroundImg, 0, 0, ctx.canvas.width, ctx.canvas.height);
+        if (backgroundImg && backgroundImg.complete && backgroundImg.naturalWidth > 0) {
+            ctx.save();
+            
+            // Melhorar qualidade da renderização
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            
+            // Forçar esticamento completo para cobrir todo o canvas
+            // Usa drawImage com parâmetros completos para garantir cobertura total
+            ctx.drawImage(
+                backgroundImg,
+                0, 0, backgroundImg.naturalWidth, backgroundImg.naturalHeight,  // área fonte (imagem completa)
+                0, 0, ctx.canvas.width, ctx.canvas.height                       // área destino (canvas completo)
+            );
+            
+            ctx.restore();
         } else {
             // Fallback: cor sólida
-            ctx.fillStyle = this.currentArea === 'up' ? '#87CEEB' : '#90EE90';
+            ctx.fillStyle = this.currentArea === 'up' ? '#2C2C2C' : '#4A7C59';
             ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            
+            // Log para debug
+            if (!backgroundImg) {
+                console.warn(`🖼️ Background não encontrado para área: ${this.currentArea}`);
+            } else {
+                console.warn(`🖼️ Background ainda carregando para área: ${this.currentArea}`);
+            }
         }
     }
 

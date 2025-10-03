@@ -322,24 +322,44 @@
             const canvas = document.getElementById('gameCanvas');
             const container = canvas.parentElement;
             
-            // Definir dimensões baseadas no container
+            // Obter dimensões do container
             const containerRect = container.getBoundingClientRect();
-            const aspectRatio = 4/3; // Proporção 4:3
             
-            let canvasWidth = containerRect.width - 8; // Subtrair border
-            let canvasHeight = canvasWidth / aspectRatio;
+            // Usar dimensões mais flexíveis para melhor responsividade
+            // Permitir que o canvas use o máximo de espaço disponível
+            let canvasWidth = Math.max(containerRect.width - 8, 400); // Mínimo 400px
+            let canvasHeight = Math.max(containerRect.height - 8, 300); // Mínimo 300px
             
-            // Verificar se a altura excede o container
-            if (canvasHeight > containerRect.height - 8) {
-                canvasHeight = containerRect.height - 8;
-                canvasWidth = canvasHeight * aspectRatio;
+            // Aplicar uma proporção máxima para telas muito largas
+            const maxAspectRatio = 16/9; // Máximo ultra-wide
+            const minAspectRatio = 4/3;  // Mínimo tradicional
+            
+            const currentRatio = canvasWidth / canvasHeight;
+            
+            if (currentRatio > maxAspectRatio) {
+                // Muito largo - ajustar largura
+                canvasWidth = canvasHeight * maxAspectRatio;
+            } else if (currentRatio < minAspectRatio) {
+                // Muito alto - ajustar altura
+                canvasHeight = canvasWidth / minAspectRatio;
             }
             
-            // Definir dimensões do canvas
-            canvas.width = canvasWidth;
-            canvas.height = canvasHeight;
+            // Garantir que não exceda container
+            if (canvasWidth > containerRect.width - 8) {
+                canvasWidth = containerRect.width - 8;
+                canvasHeight = canvasWidth / (currentRatio > maxAspectRatio ? maxAspectRatio : currentRatio);
+            }
             
-            console.log(`Canvas redimensionado para: ${canvasWidth}x${canvasHeight}`);
+            if (canvasHeight > containerRect.height - 8) {
+                canvasHeight = containerRect.height - 8;
+                canvasWidth = canvasHeight * (currentRatio < minAspectRatio ? minAspectRatio : currentRatio);
+            }
+            
+            // Definir dimensões do canvas (valores inteiros para melhor renderização)
+            canvas.width = Math.floor(canvasWidth);
+            canvas.height = Math.floor(canvasHeight);
+            
+            console.log(`Canvas redimensionado para: ${canvas.width}x${canvas.height} (ratio: ${(canvas.width/canvas.height).toFixed(2)})`);
         }
                 
         } catch (error) {

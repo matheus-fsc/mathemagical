@@ -256,8 +256,12 @@ class GameCore {
     render() {
         if (!this.ctx || !this.isInitialized) return;
         
-        // Limpar canvas
+        // Limpar canvas com fundo sólido para evitar transparência
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Garantir fundo preto como base (evitar verde)
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
         // Renderizar background da cena
         if (this.sceneManager) {

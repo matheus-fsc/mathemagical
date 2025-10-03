@@ -210,15 +210,70 @@ class SceneManager {
     // Renderizar background da cena atual
     renderBackground(ctx) {
         const backgroundImg = this.backgroundImages.get(this.currentScene);
-        if (backgroundImg) {
-            ctx.drawImage(backgroundImg, 0, 0, ctx.canvas.width, ctx.canvas.height);
+        if (backgroundImg && backgroundImg.complete && backgroundImg.naturalWidth > 0) {
+            ctx.save();
+            
+            // Usar imageSmoothingEnabled para melhor qualidade
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            
+            // Opção 1: Stretch (esticar para preencher completamente)
+            // Este é o modo mais simples e garante que não haja espaços vazios
+            this.renderBackgroundStretch(ctx, backgroundImg);
+            
+            ctx.restore();
         } else {
             // Fallback: cor sólida baseada na cena
-            const scene = this.scenes.get(this.currentScene);
             const fallbackColor = this.currentScene === 'up' ? '#2C2C2C' : '#4A7C59';
             ctx.fillStyle = fallbackColor;
             ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            
+            // Log para debug se a imagem não carregou
+            if (!backgroundImg) {
+                console.warn(`🖼️ Background não encontrado para cena: ${this.currentScene}`);
+            } else if (!backgroundImg.complete) {
+                console.warn(`🖼️ Background ainda carregando para cena: ${this.currentScene}`);
+            }
         }
+    }
+
+    // Renderizar background esticado (sem manter proporção)
+    renderBackgroundStretch(ctx, backgroundImg) {
+        // Força o esticamento para cobrir 100% do canvas
+        ctx.drawImage(
+            backgroundImg, 
+            0, 0, backgroundImg.naturalWidth, backgroundImg.naturalHeight,  // fonte
+            0, 0, ctx.canvas.width, ctx.canvas.height                       // destino
+        );
+    }
+
+    // Renderizar background mantendo proporção (alternativa)
+    renderBackgroundCover(ctx, backgroundImg) {
+        const canvasRatio = ctx.canvas.width / ctx.canvas.height;
+        const imageRatio = backgroundImg.naturalWidth / backgroundImg.naturalHeight;
+        
+        let drawWidth, drawHeight, offsetX, offsetY;
+        
+        if (imageRatio > canvasRatio) {
+            // Imagem mais larga que o canvas - ajustar pela altura
+            drawHeight = ctx.canvas.height;
+            drawWidth = drawHeight * imageRatio;
+            offsetX = (ctx.canvas.width - drawWidth) / 2;
+            offsetY = 0;
+        } else {
+            // Imagem mais alta que o canvas - ajustar pela largura
+            drawWidth = ctx.canvas.width;
+            drawHeight = drawWidth / imageRatio;
+            offsetX = 0;
+            offsetY = (ctx.canvas.height - drawHeight) / 2;
+        }
+        
+        // Preencher fundo se necessário
+        ctx.fillStyle = this.currentScene === 'up' ? '#2C2C2C' : '#4A7C59';
+        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        
+        // Desenhar imagem centralizada
+        ctx.drawImage(backgroundImg, offsetX, offsetY, drawWidth, drawHeight);
     }
 
     // Renderizar zonas de transição (debug)

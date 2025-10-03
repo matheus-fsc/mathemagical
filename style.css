@@ -37,7 +37,7 @@ h1 {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     display: block;
     margin: 0 auto;
-    background: #87CEEB;
+    background: transparent; /* Remover background azul */
 }
 
 .controls {
