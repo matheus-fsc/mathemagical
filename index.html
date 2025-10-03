@@ -198,15 +198,17 @@
                 // Inicializar sistema de interação com mouse
                 gameClient.mouseManager = new MouseInteractionManager(gameClient);
                 
-                // Ponto de interação na área "up" (posição relativa para responsividade)
-                const interactionX = gameClient.canvas.width * 0.58;  // 464/800 = 58%
-                const interactionY = gameClient.canvas.height * 0.708; // 425/600 = 70.8%
+                // Ponto de interação na área "up" - coordenadas específicas
+                const interactionX = 337;      // top left x
+                const interactionY = 340;      // top left y
+                const interactionWidth = 76.9;  // bottom right (413.9) - top left (337)
+                const interactionHeight = 50.5; // bottom right (390.5) - top left (340)
                 
                 gameClient.mouseManager.addInteractionPoint(
-                    interactionX - 25,  // x (centrado)
-                    interactionY - 25,  // y (centrado)
-                    50,   // width
-                    50,   // height
+                    interactionX,        // x
+                    interactionY,        // y
+                    interactionWidth,    // width
+                    interactionHeight,   // height
                     (mousePos, point) => {
                         // Só funciona na área "up"
                         if (gameClient.areaManager && gameClient.areaManager.getCurrentArea() === 'up') {
