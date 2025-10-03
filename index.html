@@ -192,6 +192,9 @@
                 const audioManager = {
                     audioCache: new Map(),
                     preloadedAudios: new Set(),
+                    currentBackgroundMusic: null,
+                    backgroundMusicSrc: null,
+                    isBackgroundPlaying: false,
                     
                     // Pré-carregar áudios críticos
                     preloadAudio(src) {
@@ -219,8 +222,80 @@
                         }
                         return this.audioCache.get(src);
                     },
+
+                    // Iniciar música de fundo contínua
+                    startBackgroundMusic(src = 'songs/backgroundsond.mp3', volume = 0.3) {
+                        try {
+                            // Se já está tocando a mesma música, não reiniciar
+                            if (this.backgroundMusicSrc === src && this.isBackgroundPlaying) {
+                                console.log('🎵 Música de fundo já está tocando:', src);
+                                return;
+                            }
+
+                            // Parar música anterior se existir
+                            this.stopBackgroundMusic();
+
+                            const audio = this.loadAudio(src);
+                            audio.loop = true;
+                            audio.volume = volume;
+                            
+                            const playPromise = audio.play();
+                            if (playPromise !== undefined) {
+                                playPromise
+                                    .then(() => {
+                                        this.currentBackgroundMusic = audio;
+                                        this.backgroundMusicSrc = src;
+                                        this.isBackgroundPlaying = true;
+                                        console.log('🎵 Música de fundo iniciada:', src);
+                                    })
+                                    .catch(error => {
+                                        console.warn('⚠️ Autoplay de música de fundo bloqueado:', error);
+                                    });
+                            }
+                        } catch (error) {
+                            console.error('❌ Erro ao iniciar música de fundo:', error);
+                        }
+                    },
+
+                    // Parar música de fundo
+                    stopBackgroundMusic() {
+                        if (this.currentBackgroundMusic) {
+                            this.currentBackgroundMusic.pause();
+                            this.currentBackgroundMusic.currentTime = 0;
+                            this.currentBackgroundMusic = null;
+                            this.backgroundMusicSrc = null;
+                            this.isBackgroundPlaying = false;
+                            console.log('🔇 Música de fundo parada');
+                        }
+                    },
+
+                    // Pausar música de fundo temporariamente
+                    pauseBackgroundMusic() {
+                        if (this.currentBackgroundMusic && this.isBackgroundPlaying) {
+                            this.currentBackgroundMusic.pause();
+                            this.isBackgroundPlaying = false;
+                            console.log('⏸️ Música de fundo pausada');
+                        }
+                    },
+
+                    // Retomar música de fundo
+                    resumeBackgroundMusic() {
+                        if (this.currentBackgroundMusic && !this.isBackgroundPlaying) {
+                            const playPromise = this.currentBackgroundMusic.play();
+                            if (playPromise !== undefined) {
+                                playPromise
+                                    .then(() => {
+                                        this.isBackgroundPlaying = true;
+                                        console.log('▶️ Música de fundo retomada');
+                                    })
+                                    .catch(error => {
+                                        console.warn('⚠️ Erro ao retomar música de fundo:', error);
+                                    });
+                            }
+                        }
+                    },
                     
-                    // Método otimizado para reprodução instantânea
+                    // Método otimizado para reprodução instantânea (efeitos sonoros)
                     playAudioFast(src = 'songs/tp_song.mp3') {
                         try {
                             const audio = this.loadAudio(src);
@@ -271,7 +346,8 @@
                     // Pré-carregar áudios importantes
                     preloadCriticalAudios() {
                         const criticalAudios = [
-                            'songs/tp_song.mp3'
+                            'songs/tp_song.mp3',
+                            'songs/backgroundsond.mp3'
                             // Adicionar outros áudios críticos aqui
                         ];
                         
@@ -299,11 +375,12 @@
                 // Inicializar sistema de interação com mouse
                 gameClient.mouseManager = new MouseInteractionManager(gameClient);
                 
-                // Ponto de interação na área "up" - coordenadas específicas
-                const interactionX = 355;      // top left x
-                const interactionY = 362;      // top left y
+                // Ponto de interação na área "up" - centralizado na tela
+                const canvas = document.getElementById('gameCanvas');
                 const interactionWidth = 76.9;  // mantém o mesmo tamanho
                 const interactionHeight = 50.5; // mantém o mesmo tamanho
+                const interactionX = (canvas.width / 2) - (interactionWidth / 2);   // centralizado horizontalmente
+                const interactionY = (canvas.height / 2) - (interactionHeight / 2); // centralizado verticalmente
                 
                 gameClient.mouseManager.addInteractionPoint(
                     interactionX,        // x
@@ -346,6 +423,13 @@
                     }
                     return { x: -1, y: -1 };
                 };
+                
+                // Inicializar música de fundo da área inicial
+                setTimeout(() => {
+                    if (gameClient.areaManager) {
+                        gameClient.areaManager.initializeAreaAudio();
+                    }
+                }, 500); // Pequeno delay para garantir que tudo esteja carregado
                 
                 
                 // Configurar redimensionamento
@@ -617,7 +701,15 @@
 
                 ctx.save();
                 
+                // Obter área atual
+                const currentArea = this.gameClient.areaManager ? this.gameClient.areaManager.getCurrentArea() : 'down';
+                
                 this.interactionPoints.forEach(point => {
+                    // Só renderizar area_up_interaction quando estiver na área 'up'
+                    if (point.id === 'area_up_interaction' && currentArea !== 'up') {
+                        return; // Pula a renderização desta interação
+                    }
+                    
                     // Área de interação
                     ctx.strokeStyle = point.isHovered ? '#00FF00' : '#FF6600';
                     ctx.lineWidth = 2;

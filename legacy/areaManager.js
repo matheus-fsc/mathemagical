@@ -7,6 +7,8 @@ class AreaManager {
             down: {
                 name: 'down',
                 background: 'backgrounds/imgdown.png',
+                backgroundMusic: 'songs/backgroundsond.mp3', // Música de fundo para área down
+                musicVolume: 0.3,
                 transitions: {
                     up: { area: 'up', playerY: 'bottom' } // Ao encostar no topo, vai para 'up' e player aparece embaixo
                 }
@@ -14,6 +16,8 @@ class AreaManager {
             up: {
                 name: 'up', 
                 background: 'backgrounds/imgup.png',
+                backgroundMusic: 'songs/backgroundsond.mp3', // Mesma música para continuidade
+                musicVolume: 0.3,
                 transitions: {
                     down: { area: 'down', playerY: 'top' } // Ao encostar embaixo, vai para 'down' e player aparece no topo
                 }
@@ -94,6 +98,9 @@ class AreaManager {
         const oldArea = this.currentArea;
         this.currentArea = newArea;
         
+        // Gerenciar áudio da nova área
+        this.handleAreaAudio(newArea, oldArea);
+        
         // Reposicionar player baseado na transição
         this.repositionPlayer(player, playerPosition);
         
@@ -107,6 +114,33 @@ class AreaManager {
                 newArea: newArea,
                 position: { x: player.x, y: player.y }
             });
+        }
+    }
+
+    // Gerenciar áudio ao mudar de área
+    handleAreaAudio(newArea, oldArea) {
+        const newAreaData = this.areas[newArea];
+        const oldAreaData = this.areas[oldArea];
+        
+        if (!newAreaData || !window.audioManager) return;
+
+        // Se a nova área tem música de fundo configurada
+        if (newAreaData.backgroundMusic) {
+            // Se for a mesma música da área anterior, manter tocando
+            if (oldAreaData && oldAreaData.backgroundMusic === newAreaData.backgroundMusic) {
+                console.log('🎵 Mantendo música de fundo contínua durante transição');
+                // Não para a música - continua tocando
+            } else {
+                // Trocar para nova música
+                console.log(`🎵 Mudando música: ${oldAreaData?.backgroundMusic || 'nenhuma'} → ${newAreaData.backgroundMusic}`);
+                window.audioManager.startBackgroundMusic(
+                    newAreaData.backgroundMusic, 
+                    newAreaData.musicVolume || 0.3
+                );
+            }
+        } else {
+            // Nova área não tem música - parar música atual
+            window.audioManager.stopBackgroundMusic();
         }
     }
 
@@ -263,6 +297,18 @@ class AreaManager {
         }
         
         ctx.restore();
+    }
+
+    // Inicializar música da área atual
+    initializeAreaAudio() {
+        const currentAreaData = this.areas[this.currentArea];
+        if (currentAreaData && currentAreaData.backgroundMusic && window.audioManager) {
+            console.log(`🎵 Inicializando música da área inicial: ${this.currentArea}`);
+            window.audioManager.startBackgroundMusic(
+                currentAreaData.backgroundMusic,
+                currentAreaData.musicVolume || 0.3
+            );
+        }
     }
 
     // Getters
