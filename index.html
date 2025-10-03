@@ -667,6 +667,19 @@
                        mousePos.y <= area.y + area.height;
             }
 
+            // Verificar colisão entre retângulos (player vs área de interação)
+            isPlayerColliding(player, area) {
+                // Obter dimensões reais do player baseado na animação atual
+                const playerWidth = player.width || 32;  // valor padrão se não definido
+                const playerHeight = player.height || 32; // valor padrão se não definido
+                
+                // Detecção de colisão AABB (Axis-Aligned Bounding Box)
+                return player.x < area.x + area.width &&
+                       player.x + playerWidth > area.x &&
+                       player.y < area.y + area.height &&
+                       player.y + playerHeight > area.y;
+            }
+
             // Eventos de hover
             onPointEnter(point) {
                 this.canvas.style.cursor = 'pointer';
