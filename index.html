@@ -608,6 +608,7 @@
                 setupFixedCanvas();
                 
                 gameClient = new GameClient();
+                await gameClient.init('gameCanvas');  // Inicializar gameClient primeiro
                 
                 // Inicializar sistema de componentes
                 window.gameCore = new GameCore();
@@ -616,7 +617,7 @@
                 // Integrar com o sistema legado
                 gameCore.integrateWithLegacySystem(gameClient);
                 
-                // Inicializar sistema de interação com mouse
+                // Inicializar sistema de interação com mouse (agora que gameClient.canvas existe)
                 gameClient.mouseManager = new MouseInteractionManager(gameClient);
                 
                 // Inicializar joystick virtual para dispositivos móveis
