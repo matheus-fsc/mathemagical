@@ -306,22 +306,9 @@
                     interactionY,        // y
                     interactionWidth,    // width
                     interactionHeight,   // height
-                    (mousePos, point) => {
-                        // Só funciona na área "up" (redundante, mas mantido para segurança)
-                        if (gameClient.areaManager && gameClient.areaManager.getCurrentArea() === 'up') {
-                            // Reproduzir áudio de teleporte
-                            if (window.audioManager) {
-                                audioManager.playAudio('songs/tp_song.mp3');
-                            }
-                            
-                            // Redirecionar para página do blog após um pequeno delay para o áudio
-                            setTimeout(() => {
-                                console.log('🗡️ Portal Ativado! Redirecionando para o blog...');
-                                window.location.href = 'pages/blog.html';
-                            }, 500); // 500ms delay para ouvir o som
-                        } else {
-                            console.log('🚫 Esta interação só funciona na área UP');
-                        }
+                    () => {
+                        // Função vazia - interação com clique removida
+                        // Só funciona através da colisão do player
                     },
                     'area_up_interaction',
                     'up' // NOVA: Especifica que esta interação só funciona na área "up"
@@ -777,8 +764,14 @@
                         point.audioPlayed = true; // Marcar como tocado
                         console.log(`🚪 Personagem colidiu com área de teleporte! Player: (${player.x.toFixed(1)}, ${player.y.toFixed(1)}) Dimensões: ${player.width || 32}x${player.height || 32}`);
                         
-                        // Reproduzir áudio imediatamente (sem delay)
+                        // Reproduzir áudio e redirecionar
                         this.playAudioImmediate('songs/tp_song.mp3');
+                        
+                        // Redirecionar para página do blog após delay para ouvir o áudio
+                        setTimeout(() => {
+                            console.log('🗡️ Portal Ativado! Redirecionando para o blog...');
+                            window.location.href = 'pages/blog.html';
+                        }, 1000); // 1000ms delay para garantir que o áudio toque
                     } else {
                         console.log('🔇 Áudio já foi tocado nesta entrada na área');
                     }
@@ -795,9 +788,19 @@
             // Reproduzir áudio de forma mais eficiente
             playAudioImmediate(audioPath) {
                 try {
+                    console.log(`🎵 Tentando reproduzir áudio: ${audioPath}`);
                     if (window.audioManager) {
-                        // Usar método otimizado para reprodução instantânea
+                        // Tentar múltiplos métodos de reprodução para garantir que funcione
                         audioManager.playAudioFast(audioPath);
+                        
+                        // Fallback: tentar método padrão também
+                        setTimeout(() => {
+                            audioManager.playAudio(audioPath);
+                        }, 100);
+                        
+                        console.log('🎵 Comando de reprodução enviado');
+                    } else {
+                        console.error('❌ AudioManager não disponível');
                     }
                 } catch (error) {
                     console.error('❌ Erro ao reproduzir áudio:', error);
