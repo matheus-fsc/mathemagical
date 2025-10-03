@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOC    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' data: blob: https://link-websocket-game.onrender.com wss://link-websocket-game.onrender.com ws://localhost:3000 wss://localhost:3000; font-src 'self';"&gt;YPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -638,42 +638,5 @@
         window.addEventListener('load', initGame);
     </script>
 
-    <!-- NetworkManager loader: try remote, fallback to local -->
-<script>
-(function(){
-  function loadLocal(){
-    if(typeof NetworkManager !== 'undefined') return;
-    console.warn('[loader] Loading local network manager fallback');
-    var s = document.createElement('script');
-    s.src = 'network/networkManager.js';
-    s.async = false;
-    document.head.appendChild(s);
-  }
-
-  var remoteUrl = 'https://matheus-fsc.github.io/myBlog_/network/networkManagerHTTP.js';
-  var r = document.createElement('script');
-  r.src = remoteUrl;
-  r.async = false;
-  r.onload = function(){
-    // give it a short moment to define globals
-    setTimeout(function(){
-      if(typeof NetworkManager === 'undefined'){
-        console.warn('[loader] Remote loaded but NetworkManager still undefined; loading local fallback');
-        loadLocal();
-      }
-    }, 200);
-  };
-  r.onerror = function(){
-    console.warn('[loader] Remote failed to load; loading local fallback');
-    loadLocal();
-  };
-  document.head.appendChild(r);
-
-  // final safety after 1.5s
-  setTimeout(function(){
-    if(typeof NetworkManager === 'undefined') loadLocal();
-  }, 1500);
-})();
-</script>
 </body>
 </html>
