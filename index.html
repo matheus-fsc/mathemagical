@@ -150,7 +150,7 @@
 <script src="input/inputManager.js"></script>
 <script src="sprites/frameBasedSpriteManager.js"></script>
 <script src="legacy/frameBasedPlayer.js"></script>
-<script src="network/networkManagerHTTP.js"></script>
+<script src="network/networkManager.js"></script>
 <script src="network/multiplayerManager.js"></script>
 
 <!-- Component System -->
@@ -624,5 +624,43 @@
         // Inicializar quando a página carregar
         window.addEventListener('load', initGame);
     </script>
+
+    <!-- NetworkManager loader: try remote, fallback to local -->
+<script>
+(function(){
+  function loadLocal(){
+    if(typeof NetworkManager !== 'undefined') return;
+    console.warn('[loader] Loading local network manager fallback');
+    var s = document.createElement('script');
+    s.src = 'network/networkManager.js';
+    s.async = false;
+    document.head.appendChild(s);
+  }
+
+  var remoteUrl = 'https://matheus-fsc.github.io/myBlog_/network/networkManagerHTTP.js';
+  var r = document.createElement('script');
+  r.src = remoteUrl;
+  r.async = false;
+  r.onload = function(){
+    // give it a short moment to define globals
+    setTimeout(function(){
+      if(typeof NetworkManager === 'undefined'){
+        console.warn('[loader] Remote loaded but NetworkManager still undefined; loading local fallback');
+        loadLocal();
+      }
+    }, 200);
+  };
+  r.onerror = function(){
+    console.warn('[loader] Remote failed to load; loading local fallback');
+    loadLocal();
+  };
+  document.head.appendChild(r);
+
+  // final safety after 1.5s
+  setTimeout(function(){
+    if(typeof NetworkManager === 'undefined') loadLocal();
+  }, 1500);
+})();
+</script>
 </body>
 </html>
