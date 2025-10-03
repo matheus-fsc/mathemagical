@@ -109,11 +109,153 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
         }
+        
+        /* ===== VIRTUAL JOYSTICK STYLES ===== */
+        .virtual-joystick {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 1000;
+            display: none; /* Oculto por padrão, mostrado apenas em mobile */
+            pointer-events: auto;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        
+        .joystick-base {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            position: relative;
+            box-shadow: 
+                0 0 20px rgba(0, 0, 0, 0.5),
+                inset 0 0 20px rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            transition: all 0.2s ease;
+            
+            /* Indicador central sutil */
+            &::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.3);
+                transform: translate(-50%, -50%);
+            }
+        }
+        
+        .joystick-base:active {
+            transform: scale(1.05);
+            border-color: rgba(255, 215, 0, 0.6);
+            box-shadow: 
+                0 0 30px rgba(255, 215, 0, 0.3),
+                inset 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+        
+        .joystick-knob {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #FFD700, #FFA500);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 
+                0 4px 15px rgba(0, 0, 0, 0.4),
+                inset 0 2px 5px rgba(255, 255, 255, 0.3);
+            transition: all 0.1s ease;
+            cursor: pointer;
+            
+            /* Highlight central */
+            &::before {
+                content: '';
+                position: absolute;
+                top: 20%;
+                left: 30%;
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.6);
+                filter: blur(1px);
+            }
+        }
+        
+        .joystick-knob:active {
+            background: radial-gradient(circle at 30% 30%, #FFA500, #FF8C00);
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+        
+        /* Responsive para diferentes tamanhos de tela mobile */
+        @media (max-width: 480px) {
+            .virtual-joystick {
+                bottom: 20px;
+                left: 20px;
+            }
+            
+            .joystick-base {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .joystick-knob {
+                width: 40px;
+                height: 40px;
+            }
+        }
+        
+        @media (max-height: 600px) {
+            .virtual-joystick {
+                bottom: 15px;
+                left: 15px;
+            }
+            
+            .joystick-base {
+                width: 90px;
+                height: 90px;
+            }
+            
+            .joystick-knob {
+                width: 35px;
+                height: 35px;
+            }
+        }
+        
+        /* Orientação landscape em mobile */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .virtual-joystick {
+                bottom: 10px;
+                left: 15px;
+                transform: scale(0.8);
+            }
+        }
+        
+        /* Dispositivos com notch */
+        @supports (padding: max(0px)) {
+            .virtual-joystick {
+                bottom: max(30px, env(safe-area-inset-bottom));
+                left: max(30px, env(safe-area-inset-left));
+            }
+        }
     </style>
 </head>
 <body>
     <!-- Fullscreen Game Canvas -->
     <canvas id="gameCanvas"></canvas>
+    
+    <!-- Mobile Virtual Joystick -->
+    <div class="virtual-joystick" id="virtualJoystick">
+        <div class="joystick-base" id="joystickBase">
+            <div class="joystick-knob" id="joystickKnob"></div>
+        </div>
+    </div>
     
     <!-- Audio Permission Modal -->
     <div class="audio-permission-modal" id="audioPermissionModal">
@@ -169,7 +311,255 @@
     <script>
         // ===== SISTEMA DE PERMISSÃO DE ÁUDIO =====
         let audioEnabled = false;
-        let audioManager = null;
+        
+        // Sistema de áudio global e simples
+        window.audioManager = {
+            audioCache: new Map(),
+            currentBackgroundMusic: null,
+            isBackgroundPlaying: false,
+            
+            preloadAudio(src) {
+                if (!this.audioCache.has(src)) {
+                    const audio = new Audio(src);
+                    audio.preload = 'auto';
+                    audio.volume = 0.5;
+                    audio.load();
+                    this.audioCache.set(src, audio);
+                    console.log('🎵 Áudio pré-carregado:', src);
+                }
+                return this.audioCache.get(src);
+            },
+            
+            startBackgroundMusic(src = 'songs/backgroundsond.mp3', volume = 0.3) {
+                if (!audioEnabled) {
+                    console.log('🔇 Áudio não habilitado - música de fundo não iniciada');
+                    return;
+                }
+                
+                try {
+                    this.stopBackgroundMusic();
+                    const audio = this.preloadAudio(src);
+                    audio.loop = true;
+                    audio.volume = volume;
+                    
+                    audio.play().then(() => {
+                        this.currentBackgroundMusic = audio;
+                        this.isBackgroundPlaying = true;
+                        console.log('🎵 Música de fundo iniciada:', src);
+                    }).catch(error => {
+                        console.warn('⚠️ Erro ao tocar música de fundo:', error);
+                    });
+                } catch (error) {
+                    console.error('❌ Erro no sistema de áudio:', error);
+                }
+            },
+            
+            stopBackgroundMusic() {
+                if (this.currentBackgroundMusic) {
+                    this.currentBackgroundMusic.pause();
+                    this.currentBackgroundMusic.currentTime = 0;
+                    this.currentBackgroundMusic = null;
+                    this.isBackgroundPlaying = false;
+                }
+            },
+            
+            playAudioFast(src = 'songs/tp_song.mp3') {
+                if (!audioEnabled) {
+                    console.log('🔇 Áudio não habilitado - efeito sonoro não reproduzido');
+                    return;
+                }
+                
+                try {
+                    const audio = this.preloadAudio(src);
+                    audio.currentTime = 0;
+                    audio.play().then(() => {
+                        console.log('🎵 Efeito sonoro reproduzido:', src);
+                    }).catch(e => {
+                        console.warn('⚠️ Erro ao reproduzir efeito sonoro:', e);
+                    });
+                } catch (error) {
+                    console.error('❌ Erro ao reproduzir áudio:', error);
+                }
+            },
+            
+            playAudio(src = 'songs/tp_song.mp3') {
+                this.playAudioFast(src);
+            }
+        };
+        
+        // ===== VIRTUAL JOYSTICK CLASS =====
+        class VirtualJoystick {
+            constructor() {
+                this.joystickElement = document.getElementById('virtualJoystick');
+                this.baseElement = document.getElementById('joystickBase');
+                this.knobElement = document.getElementById('joystickKnob');
+                
+                this.isActive = false;
+                this.startPos = { x: 0, y: 0 };
+                this.currentPos = { x: 0, y: 0 };
+                this.direction = { x: 0, y: 0 }; // Valores normalizados entre -1 e 1
+                this.magnitude = 0; // Intensidade do movimento (0 a 1)
+                
+                this.baseRadius = 60; // Raio da base do joystick
+                this.knobRadius = 25; // Raio do knob
+                this.maxDistance = this.baseRadius - this.knobRadius; // Distância máxima do knob do centro
+                
+                this.onMoveCallback = null;
+                this.onStartCallback = null;
+                this.onEndCallback = null;
+                
+                this.setupEvents();
+                this.detectMobileDevice();
+                
+                console.log('🕹️ VirtualJoystick inicializado');
+            }
+            
+            detectMobileDevice() {
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                                 'ontouchstart' in window ||
+                                 navigator.maxTouchPoints > 0;
+                
+                if (isMobile) {
+                    this.joystickElement.style.display = 'block';
+                    console.log('📱 Dispositivo móvel detectado - joystick virtual habilitado');
+                } else {
+                    this.joystickElement.style.display = 'none';
+                    console.log('🖥️ Dispositivo desktop detectado - joystick virtual desabilitado');
+                }
+                
+                return isMobile;
+            }
+            
+            setupEvents() {
+                // Touch events para mobile
+                this.baseElement.addEventListener('touchstart', this.onStart.bind(this), { passive: false });
+                this.baseElement.addEventListener('touchmove', this.onMove.bind(this), { passive: false });
+                this.baseElement.addEventListener('touchend', this.onEnd.bind(this), { passive: false });
+                
+                // Mouse events para teste em desktop
+                this.baseElement.addEventListener('mousedown', this.onStart.bind(this));
+                document.addEventListener('mousemove', this.onMove.bind(this));
+                document.addEventListener('mouseup', this.onEnd.bind(this));
+                
+                // Prevenir scroll ao tocar no joystick
+                this.baseElement.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+            }
+            
+            onStart(event) {
+                event.preventDefault();
+                this.isActive = true;
+                
+                const touch = event.touches ? event.touches[0] : event;
+                const rect = this.baseElement.getBoundingClientRect();
+                
+                this.startPos = {
+                    x: rect.left + rect.width / 2,
+                    y: rect.top + rect.height / 2
+                };
+                
+                this.currentPos = {
+                    x: touch.clientX,
+                    y: touch.clientY
+                };
+                
+                this.updateKnobPosition();
+                
+                if (this.onStartCallback) {
+                    this.onStartCallback(this.direction, this.magnitude);
+                }
+                
+                console.log('🕹️ Joystick ativado');
+            }
+            
+            onMove(event) {
+                if (!this.isActive) return;
+                
+                event.preventDefault();
+                const touch = event.touches ? event.touches[0] : event;
+                
+                this.currentPos = {
+                    x: touch.clientX,
+                    y: touch.clientY
+                };
+                
+                this.updateKnobPosition();
+                
+                if (this.onMoveCallback) {
+                    this.onMoveCallback(this.direction, this.magnitude);
+                }
+            }
+            
+            onEnd(event) {
+                if (!this.isActive) return;
+                
+                event.preventDefault();
+                this.isActive = false;
+                
+                // Retornar knob para o centro
+                this.direction = { x: 0, y: 0 };
+                this.magnitude = 0;
+                this.knobElement.style.transform = 'translate(-50%, -50%)';
+                
+                if (this.onEndCallback) {
+                    this.onEndCallback(this.direction, this.magnitude);
+                }
+                
+                console.log('🕹️ Joystick desativado');
+            }
+            
+            updateKnobPosition() {
+                const deltaX = this.currentPos.x - this.startPos.x;
+                const deltaY = this.currentPos.y - this.startPos.y;
+                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                
+                // Limitar movimento do knob dentro da base
+                const clampedDistance = Math.min(distance, this.maxDistance);
+                const angle = Math.atan2(deltaY, deltaX);
+                
+                const knobX = Math.cos(angle) * clampedDistance;
+                const knobY = Math.sin(angle) * clampedDistance;
+                
+                // Atualizar posição visual do knob
+                this.knobElement.style.transform = `translate(-50%, -50%) translate(${knobX}px, ${knobY}px)`;
+                
+                // Calcular direção normalizada (-1 a 1)
+                this.direction = {
+                    x: clampedDistance > 0 ? knobX / this.maxDistance : 0,
+                    y: clampedDistance > 0 ? knobY / this.maxDistance : 0
+                };
+                
+                // Calcular magnitude (0 a 1)
+                this.magnitude = clampedDistance / this.maxDistance;
+            }
+            
+            // Métodos para configurar callbacks
+            setOnMove(callback) {
+                this.onMoveCallback = callback;
+            }
+            
+            setOnStart(callback) {
+                this.onStartCallback = callback;
+            }
+            
+            setOnEnd(callback) {
+                this.onEndCallback = callback;
+            }
+            
+            // Getter para verificar se está ativo
+            get active() {
+                return this.isActive;
+            }
+            
+            // Getter para direção atual
+            get currentDirection() {
+                return { ...this.direction };
+            }
+            
+            // Getter para magnitude atual
+            get currentMagnitude() {
+                return this.magnitude;
+            }
+        }
         
         // Função para habilitar áudio após interação do usuário
         function enableAudio() {
@@ -182,21 +572,30 @@
                 modal.style.display = 'none';
             }
             
-            // Tocar um som de teste para "desbloquear" o contexto de áudio
-            if (audioManager) {
-                // Reproduzir um som silencioso para ativar o contexto
-                const testAudio = new Audio();
-                testAudio.volume = 0;
-                testAudio.play().then(() => {
-                    console.log('✅ Contexto de áudio desbloqueado');
-                    // Iniciar música de fundo se disponível
-                    if (gameClient && gameClient.areaManager) {
-                        gameClient.areaManager.initializeAreaAudio();
-                    }
-                }).catch(e => {
-                    console.log('⚠️ Ainda não foi possível desbloquear o áudio:', e);
-                });
-            }
+            console.log('🎵 Habilitando sistema de áudio...');
+            
+            // Tocar um som silencioso para desbloquear o contexto de áudio
+            const testAudio = new Audio();
+            testAudio.volume = 0;
+            testAudio.play().then(() => {
+                console.log('✅ Contexto de áudio desbloqueado');
+                
+                // Pré-carregar áudios críticos
+                window.audioManager.preloadAudio('songs/backgroundsond.mp3');
+                window.audioManager.preloadAudio('songs/tp_song.mp3');
+                
+                // Iniciar música de fundo
+                console.log('🎵 Iniciando música de fundo...');
+                window.audioManager.startBackgroundMusic();
+                
+                // Inicializar áudio da área atual se disponível
+                if (gameClient && gameClient.areaManager) {
+                    console.log('🎵 Inicializando áudio da área...');
+                    gameClient.areaManager.initializeAreaAudio();
+                }
+            }).catch(e => {
+                console.log('⚠️ Ainda não foi possível desbloquear o áudio:', e);
+            });
         }
         
         // Inicialização do jogo
@@ -209,202 +608,6 @@
                 setupFixedCanvas();
                 
                 gameClient = new GameClient();
-                await gameClient.init('gameCanvas');
-                
-                // Sistema de áudio otimizado para baixa latência
-                const audioManager = {
-                    audioCache: new Map(),
-                    preloadedAudios: new Set(),
-                    currentBackgroundMusic: null,
-                    backgroundMusicSrc: null,
-                    isBackgroundPlaying: false,
-                    
-                    // Pré-carregar áudios críticos
-                    preloadAudio(src) {
-                        if (!this.audioCache.has(src)) {
-                            const audio = new Audio(src);
-                            audio.preload = 'auto';
-                            audio.volume = 0.5;
-                            
-                            // Carregar imediatamente
-                            audio.load();
-                            
-                            this.audioCache.set(src, audio);
-                            
-                            audio.addEventListener('canplaythrough', () => {
-                                this.preloadedAudios.add(src);
-                                console.log('🎵 Áudio pré-carregado:', src);
-                            }, { once: true });
-                        }
-                        return this.audioCache.get(src);
-                    },
-                    
-                    loadAudio(src) {
-                        if (!this.audioCache.has(src)) {
-                            return this.preloadAudio(src);
-                        }
-                        return this.audioCache.get(src);
-                    },
-
-                    // Iniciar música de fundo contínua
-                    startBackgroundMusic(src = 'songs/backgroundsond.mp3', volume = 0.3) {
-                        try {
-                            // Verificar se áudio foi habilitado pelo usuário
-                            if (!audioEnabled) {
-                                console.log('🔇 Áudio não habilitado - música de fundo não iniciada');
-                                return;
-                            }
-                            
-                            // Se já está tocando a mesma música, não reiniciar
-                            if (this.backgroundMusicSrc === src && this.isBackgroundPlaying) {
-                                console.log('🎵 Música de fundo já está tocando:', src);
-                                return;
-                            }
-
-                            // Parar música anterior se existir
-                            this.stopBackgroundMusic();
-
-                            const audio = this.loadAudio(src);
-                            audio.loop = true;
-                            audio.volume = volume;
-                            
-                            const playPromise = audio.play();
-                            if (playPromise !== undefined) {
-                                playPromise
-                                    .then(() => {
-                                        this.currentBackgroundMusic = audio;
-                                        this.backgroundMusicSrc = src;
-                                        this.isBackgroundPlaying = true;
-                                        console.log('🎵 Música de fundo iniciada:', src);
-                                    })
-                                    .catch(error => {
-                                        console.warn('⚠️ Autoplay de música de fundo bloqueado:', error);
-                                    });
-                            }
-                        } catch (error) {
-                            console.error('❌ Erro ao iniciar música de fundo:', error);
-                        }
-                    },
-
-                    // Parar música de fundo
-                    stopBackgroundMusic() {
-                        if (this.currentBackgroundMusic) {
-                            this.currentBackgroundMusic.pause();
-                            this.currentBackgroundMusic.currentTime = 0;
-                            this.currentBackgroundMusic = null;
-                            this.backgroundMusicSrc = null;
-                            this.isBackgroundPlaying = false;
-                            console.log('🔇 Música de fundo parada');
-                        }
-                    },
-
-                    // Pausar música de fundo temporariamente
-                    pauseBackgroundMusic() {
-                        if (this.currentBackgroundMusic && this.isBackgroundPlaying) {
-                            this.currentBackgroundMusic.pause();
-                            this.isBackgroundPlaying = false;
-                            console.log('⏸️ Música de fundo pausada');
-                        }
-                    },
-
-                    // Retomar música de fundo
-                    resumeBackgroundMusic() {
-                        if (this.currentBackgroundMusic && !this.isBackgroundPlaying) {
-                            const playPromise = this.currentBackgroundMusic.play();
-                            if (playPromise !== undefined) {
-                                playPromise
-                                    .then(() => {
-                                        this.isBackgroundPlaying = true;
-                                        console.log('▶️ Música de fundo retomada');
-                                    })
-                                    .catch(error => {
-                                        console.warn('⚠️ Erro ao retomar música de fundo:', error);
-                                    });
-                            }
-                        }
-                    },
-                    
-                    // Método otimizado para reprodução instantânea (efeitos sonoros)
-                    playAudioFast(src = 'songs/tp_song.mp3') {
-                        try {
-                            // Verificar se áudio foi habilitado pelo usuário
-                            if (!audioEnabled) {
-                                console.log('🔇 Áudio não habilitado - efeito sonoro não reproduzido');
-                                return;
-                            }
-                            
-                            const audio = this.loadAudio(src);
-                            
-                            // Se já está carregado, reproduzir imediatamente
-                            if (this.preloadedAudios.has(src)) {
-                                audio.currentTime = 0;
-                                audio.play().catch(e => console.warn('🔇 Autoplay bloqueado:', e));
-                                console.log('🎵 Áudio reproduzido instantaneamente:', src);
-                            } else {
-                                // Se não carregou ainda, tentar mesmo assim
-                                console.log('⏳ Tentando reproduzir áudio ainda carregando:', src);
-                                audio.play().catch(e => console.warn('🔇 Áudio não pronto:', e));
-                            }
-                        } catch (error) {
-                            console.error('❌ Erro ao reproduzir áudio:', error);
-                        }
-                    },
-                    
-                    // Método original (mantido para compatibilidade)
-                    playAudio(src = 'songs/tp_song.mp3') {
-                        try {
-                            // Verificar se áudio foi habilitado pelo usuário
-                            if (!audioEnabled) {
-                                console.log('🔇 Áudio não habilitado - efeito sonoro não reproduzido');
-                                return;
-                            }
-                            
-                            const audio = this.loadAudio(src);
-                            audio.currentTime = 0; // Restart from beginning
-                            const playPromise = audio.play();
-                            
-                            if (playPromise !== undefined) {
-                                playPromise
-                                    .then(() => {
-                                        console.log('🎵 Áudio reproduzido com sucesso:', src);
-                                    })
-                                    .catch(error => {
-                                        console.warn('⚠️ Autoplay bloqueado, necessária interação do usuário:', error);
-                                    });
-                            }
-                        } catch (error) {
-                            console.error('❌ Erro ao reproduzir áudio:', error);
-                        }
-                    },
-                    
-                    stopAudio() {
-                        this.audioCache.forEach(audio => {
-                            audio.pause();
-                            audio.currentTime = 0;
-                        });
-                    },
-                    
-                    // Pré-carregar áudios importantes
-                    preloadCriticalAudios() {
-                        const criticalAudios = [
-                            'songs/tp_song.mp3',
-                            'songs/backgroundsond.mp3'
-                            // Adicionar outros áudios críticos aqui
-                        ];
-                        
-                        criticalAudios.forEach(src => {
-                            this.preloadAudio(src);
-                        });
-                        
-                        console.log('🎵 Iniciando pré-carregamento de áudios críticos...');
-                    }
-                };
-                
-                // Tornar o audioManager global
-                window.audioManager = audioManager;
-                
-                // Pré-carregar áudios críticos imediatamente
-                audioManager.preloadCriticalAudios();
                 
                 // Inicializar sistema de componentes
                 window.gameCore = new GameCore();
@@ -415,6 +618,15 @@
                 
                 // Inicializar sistema de interação com mouse
                 gameClient.mouseManager = new MouseInteractionManager(gameClient);
+                
+                // Inicializar joystick virtual para dispositivos móveis
+                gameClient.virtualJoystick = new VirtualJoystick();
+                
+                // O joystick virtual agora será integrado diretamente no update do player
+                // Não precisamos mais de callbacks aqui - o gameClient vai acessar os dados diretamente
+                
+                // Tornar joystick disponível globalmente para debug
+                window.virtualJoystick = gameClient.virtualJoystick;
                 
                 // Ponto de interação na área "up" - posição fixa no centro
                 const interactionWidth = 76.9;  // mantém o mesmo tamanho

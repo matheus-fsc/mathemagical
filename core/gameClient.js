@@ -354,8 +354,17 @@ class GameClient {
     update(deltaTime) {
         if (!this.gameState.isGameRunning) return;
 
-        // Atualizar jogador local
-        this.player.update(deltaTime);
+        // Preparar dados do joystick virtual se disponível
+        let joystickData = null;
+        if (this.virtualJoystick && this.virtualJoystick.active) {
+            joystickData = {
+                direction: this.virtualJoystick.currentDirection,
+                magnitude: this.virtualJoystick.currentMagnitude
+            };
+        }
+
+        // Atualizar jogador local com dados do joystick
+        this.player.update(deltaTime, this.inputManager, joystickData);
         
         // Verificar transições de área
         if (this.areaManager) {

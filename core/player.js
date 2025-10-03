@@ -53,7 +53,7 @@ class Player {
     get width() { return this.baseWidth; }
     get height() { return this.baseHeight; }
 
-    update(deltaTime, inputManager) {
+    update(deltaTime, inputManager, joystickData = null) {
         // Converte deltaTime de milissegundos para segundos
         const dt = deltaTime / 1000;
         
@@ -93,33 +93,53 @@ class Player {
         this.velocityY = 0;
         this.isMoving = false;
 
-        // Verifica input de movimento
-        if (inputManager.isPressed('left')) {
-            this.velocityX = -this.speed;
-            this.facing = 'left';
-            this.lastDirection = 'left';
+        // === JOYSTICK VIRTUAL (PRIORIDADE) ===
+        if (joystickData && joystickData.magnitude > 0.1) { // Dead zone de 10%
+            const normalizedSpeed = this.speed * joystickData.magnitude;
+            this.velocityX = joystickData.direction.x * normalizedSpeed;
+            this.velocityY = joystickData.direction.y * normalizedSpeed;
+            
+            // Determinar direção do sprite baseada no movimento dominante
+            if (Math.abs(joystickData.direction.x) > Math.abs(joystickData.direction.y)) {
+                this.facing = joystickData.direction.x > 0 ? 'right' : 'left';
+                this.lastDirection = this.facing;
+            } else {
+                this.facing = joystickData.direction.y > 0 ? 'front' : 'back';
+                this.lastDirection = this.facing;
+            }
+            
             this.isMoving = true;
         }
-        
-        if (inputManager.isPressed('right')) {
-            this.velocityX = this.speed;
-            this.facing = 'right';
-            this.lastDirection = 'right';
-            this.isMoving = true;
-        }
-        
-        if (inputManager.isPressed('up')) {
-            this.velocityY = -this.speed;
-            this.facing = 'back';
-            this.lastDirection = 'back';
-            this.isMoving = true;
-        }
-        
-        if (inputManager.isPressed('down')) {
-            this.velocityY = this.speed;
-            this.facing = 'front';
-            this.lastDirection = 'front';
-            this.isMoving = true;
+        // === TECLADO (FALLBACK SE NÃO HOUVER JOYSTICK ATIVO) ===
+        else if (!joystickData || joystickData.magnitude <= 0.1) {
+            // Verifica input de movimento do teclado
+            if (inputManager.isPressed('left')) {
+                this.velocityX = -this.speed;
+                this.facing = 'left';
+                this.lastDirection = 'left';
+                this.isMoving = true;
+            }
+            
+            if (inputManager.isPressed('right')) {
+                this.velocityX = this.speed;
+                this.facing = 'right';
+                this.lastDirection = 'right';
+                this.isMoving = true;
+            }
+            
+            if (inputManager.isPressed('up')) {
+                this.velocityY = -this.speed;
+                this.facing = 'back';
+                this.lastDirection = 'back';
+                this.isMoving = true;
+            }
+            
+            if (inputManager.isPressed('down')) {
+                this.velocityY = this.speed;
+                this.facing = 'front';
+                this.lastDirection = 'front';
+                this.isMoving = true;
+            }
         }
 
         // Aplica movimento com verificação de colisão
