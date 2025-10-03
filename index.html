@@ -188,19 +188,59 @@
                 gameClient = new GameClient();
                 await gameClient.init('gameCanvas');
                 
-                // Sistema de áudio
+                // Sistema de áudio otimizado para baixa latência
                 const audioManager = {
-                    audio: null,
+                    audioCache: new Map(),
+                    preloadedAudios: new Set(),
                     
-                    loadAudio(src) {
-                        if (!this.audio) {
-                            this.audio = new Audio(src);
-                            this.audio.preload = 'auto';
-                            this.audio.volume = 0.5; // Volume padrão 50%
+                    // Pré-carregar áudios críticos
+                    preloadAudio(src) {
+                        if (!this.audioCache.has(src)) {
+                            const audio = new Audio(src);
+                            audio.preload = 'auto';
+                            audio.volume = 0.5;
+                            
+                            // Carregar imediatamente
+                            audio.load();
+                            
+                            this.audioCache.set(src, audio);
+                            
+                            audio.addEventListener('canplaythrough', () => {
+                                this.preloadedAudios.add(src);
+                                console.log('🎵 Áudio pré-carregado:', src);
+                            }, { once: true });
                         }
-                        return this.audio;
+                        return this.audioCache.get(src);
                     },
                     
+                    loadAudio(src) {
+                        if (!this.audioCache.has(src)) {
+                            return this.preloadAudio(src);
+                        }
+                        return this.audioCache.get(src);
+                    },
+                    
+                    // Método otimizado para reprodução instantânea
+                    playAudioFast(src = 'songs/tp_song.mp3') {
+                        try {
+                            const audio = this.loadAudio(src);
+                            
+                            // Se já está carregado, reproduzir imediatamente
+                            if (this.preloadedAudios.has(src)) {
+                                audio.currentTime = 0;
+                                audio.play().catch(e => console.warn('🔇 Autoplay bloqueado:', e));
+                                console.log('🎵 Áudio reproduzido instantaneamente:', src);
+                            } else {
+                                // Se não carregou ainda, tentar mesmo assim
+                                console.log('⏳ Tentando reproduzir áudio ainda carregando:', src);
+                                audio.play().catch(e => console.warn('🔇 Áudio não pronto:', e));
+                            }
+                        } catch (error) {
+                            console.error('❌ Erro ao reproduzir áudio:', error);
+                        }
+                    },
+                    
+                    // Método original (mantido para compatibilidade)
                     playAudio(src = 'songs/tp_song.mp3') {
                         try {
                             const audio = this.loadAudio(src);
@@ -222,15 +262,32 @@
                     },
                     
                     stopAudio() {
-                        if (this.audio) {
-                            this.audio.pause();
-                            this.audio.currentTime = 0;
-                        }
+                        this.audioCache.forEach(audio => {
+                            audio.pause();
+                            audio.currentTime = 0;
+                        });
+                    },
+                    
+                    // Pré-carregar áudios importantes
+                    preloadCriticalAudios() {
+                        const criticalAudios = [
+                            'songs/tp_song.mp3'
+                            // Adicionar outros áudios críticos aqui
+                        ];
+                        
+                        criticalAudios.forEach(src => {
+                            this.preloadAudio(src);
+                        });
+                        
+                        console.log('🎵 Iniciando pré-carregamento de áudios críticos...');
                     }
                 };
                 
                 // Tornar o audioManager global
                 window.audioManager = audioManager;
+                
+                // Pré-carregar áudios críticos imediatamente
+                audioManager.preloadCriticalAudios();
                 
                 // Inicializar sistema de componentes
                 window.gameCore = new GameCore();
@@ -254,7 +311,7 @@
                     interactionWidth,    // width
                     interactionHeight,   // height
                     (mousePos, point) => {
-                        // Só funciona na área "up"
+                        // Só funciona na área "up" (redundante, mas mantido para segurança)
                         if (gameClient.areaManager && gameClient.areaManager.getCurrentArea() === 'up') {
                             // Reproduzir áudio de teleporte
                             if (window.audioManager) {
@@ -265,13 +322,14 @@
                             console.log('🚫 Esta interação só funciona na área UP');
                         }
                     },
-                    'area_up_interaction'
+                    'area_up_interaction',
+                    'up' // NOVA: Especifica que esta interação só funciona na área "up"
                 );
                 
                 // Função helper para facilitar criação de pontos de interação
-                window.addInteractionPoint = (x, y, width, height, action, id) => {
+                window.addInteractionPoint = (x, y, width, height, action, id, requiredArea = null) => {
                     if (gameClient && gameClient.mouseManager) {
-                        return gameClient.mouseManager.addInteractionPoint(x, y, width, height, action, id);
+                        return gameClient.mouseManager.addInteractionPoint(x, y, width, height, action, id, requiredArea);
                     }
                 };
                 
@@ -490,7 +548,7 @@
             }
 
             // Adicionar ponto de interação
-            addInteractionPoint(x, y, width, height, action, id = null) {
+            addInteractionPoint(x, y, width, height, action, id = null, requiredArea = null) {
                 const point = {
                     id: id || `point_${this.interactionPoints.length}`,
                     x: x,
@@ -499,11 +557,15 @@
                     height: height,
                     action: action,
                     isHovered: false,
-                    cooldown: 0
+                    cooldown: 0,
+                    requiredArea: requiredArea, // Nova propriedade para especificar área necessária
+                    playerInside: false,
+                    audioPlayed: false,
+                    checkCounter: 0
                 };
                 
                 this.interactionPoints.push(point);
-                console.log(`🎯 Ponto de interação adicionado: ${point.id} em (${x}, ${y})`);
+                console.log(`🎯 Ponto de interação adicionado: ${point.id} em (${x}, ${y})${requiredArea ? ` [Área: ${requiredArea}]` : ''}`);
                 return point;
             }
 
@@ -604,42 +666,130 @@
                 });
             }
 
-            // Verificar interações - agora considera visibilidade
+            // Verificar interações - otimizado por área
             checkInteractions() {
                 const currentArea = this.gameClient.areaManager ? this.gameClient.areaManager.getCurrentArea() : 'down';
                 
+                // Cache do player para evitar múltiplas buscas (só se necessário)
+                let playerCached = false;
+                
                 this.interactionPoints.forEach(point => {
-                    // Só processar interações visíveis na área atual
-                    if (point.id === 'area_up_interaction' && currentArea !== 'up') {
-                        point.isHovered = false; // Reset hover se não estiver na área correta
-                        return; // Skip processamento
+                    // OTIMIZAÇÃO PRINCIPAL: Só processar interações da área atual
+                    if (point.requiredArea && point.requiredArea !== currentArea) {
+                        // Reset estado se não estiver na área correta
+                        if (point.isHovered) point.isHovered = false;
+                        if (point.playerInside) {
+                            point.playerInside = false;
+                            point.audioPlayed = false; // Reset áudio ao sair da área
+                        }
+                        return; // Skip processamento - ECONOMIA MASSIVA DE CPU
                     }
 
+                    // Verificação de cooldown
                     if (point.cooldown > 0) {
                         point.cooldown--;
                     }
 
+                    // Verificação de mouse (sempre ativa)
                     const wasHovered = point.isHovered;
                     point.isHovered = this.isPointInside(this.currentMousePos, point);
 
-                    // Entrou na área
+                    // Eventos de mouse
                     if (point.isHovered && !wasHovered) {
                         this.onPointEnter(point);
                     }
                     
-                    // Saiu da área
                     if (!point.isHovered && wasHovered) {
                         this.onPointLeave(point);
                     }
 
-                    // Verificar se o personagem está dentro da área de interação (especial para area_up_interaction)
+                    // Verificação de personagem (só para interações específicas e na área correta)
                     if (point.id === 'area_up_interaction' && currentArea === 'up') {
-                        this.checkPlayerInInteractionArea(point);
+                        // Cache player apenas quando necessário
+                        if (!playerCached) {
+                            if (!this.cachedPlayer || this.playerCacheTime < Date.now() - 100) {
+                                this.cachedPlayer = this.findPlayer();
+                                this.playerCacheTime = Date.now();
+                            }
+                            playerCached = true;
+                        }
+                        
+                        if (this.cachedPlayer) {
+                            this.checkPlayerInInteractionAreaOptimized(point);
+                        }
                     }
                 });
             }
 
-            // Verificar se o personagem está dentro da área de interação
+            // Buscar player com fallbacks
+            findPlayer() {
+                let player = this.gameClient.player;
+                
+                if (!player && window.gameCore && window.gameCore.player) {
+                    player = window.gameCore.player;
+                }
+                
+                if (!player && this.gameClient.frameBasedGame && this.gameClient.frameBasedGame.player) {
+                    player = this.gameClient.frameBasedGame.player;
+                }
+                
+                return player;
+            }
+
+            // Versão otimizada da verificação do personagem
+            checkPlayerInInteractionAreaOptimized(point) {
+                const player = this.cachedPlayer;
+                if (!player) return;
+
+                // Throttling: só verificar a cada 5 frames (~83ms a 60fps)
+                point.checkCounter = (point.checkCounter || 0) + 1;
+                if (point.checkCounter % 5 !== 0) return;
+
+                const playerPos = {
+                    x: player.x,
+                    y: player.y
+                };
+
+                const wasPlayerInside = point.playerInside || false;
+                const isPlayerInside = this.isPointInside(playerPos, point);
+
+                // Personagem entrou na área de interação
+                if (isPlayerInside && !wasPlayerInside) {
+                    point.playerInside = true;
+                    
+                    // Verificar se o áudio já foi tocado nesta sessão na área
+                    if (!point.audioPlayed) {
+                        point.audioPlayed = true; // Marcar como tocado
+                        console.log(`🚪 Personagem entrou na área de teleporte! Pos: (${playerPos.x.toFixed(1)}, ${playerPos.y.toFixed(1)})`);
+                        
+                        // Reproduzir áudio imediatamente (sem delay)
+                        this.playAudioImmediate('songs/tp_song.mp3');
+                    } else {
+                        console.log('🔇 Áudio já foi tocado nesta entrada na área');
+                    }
+                }
+                
+                // Personagem saiu da área de interação
+                if (!isPlayerInside && wasPlayerInside) {
+                    point.playerInside = false;
+                    point.audioPlayed = false; // Reset do estado do áudio ao sair
+                    console.log('🚶 Personagem saiu da área de teleporte - áudio resetado');
+                }
+            }
+
+            // Reproduzir áudio de forma mais eficiente
+            playAudioImmediate(audioPath) {
+                try {
+                    if (window.audioManager) {
+                        // Usar método otimizado para reprodução instantânea
+                        audioManager.playAudioFast(audioPath);
+                    }
+                } catch (error) {
+                    console.error('❌ Erro ao reproduzir áudio:', error);
+                }
+            }
+
+            // Verificar se o personagem está dentro da área de interação (método antigo - mantido para compatibilidade)
             checkPlayerInInteractionArea(point) {
                 // Tentar múltiplas formas de acessar o player
                 let player = this.gameClient.player;
