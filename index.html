@@ -11,7 +11,7 @@
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
     <link rel="apple-touch-icon" href="favicon.ico">
     
-    <!-- Fullscreen Canvas Styles -->
+    <!-- Fixed Size Canvas Styles -->
     <style>
         * {
             margin: 0;
@@ -25,14 +25,18 @@
             overflow: hidden;
             background: #000;
             font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         
         #gameCanvas {
             display: block;
-            width: 100vw;
-            height: 100vh;
-            object-fit: contain;
+            width: 800px;  /* Largura fixa */
+            height: 600px; /* Altura fixa */
             background: #000;
+            border: 2px solid #333;
+            image-rendering: pixelated; /* Para manter sprites nítidos */
         }
         
         .debug-info {
@@ -47,27 +51,6 @@
             border-radius: 5px;
             display: none;
         }
-        
-        .interaction-hint {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #FFD700;
-            font-size: 16px;
-            text-align: center;
-            z-index: 1000;
-            background: rgba(0,0,0,0.8);
-            padding: 10px 20px;
-            border-radius: 10px;
-            border: 2px solid #FFD700;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
-            50% { opacity: 1; transform: translateX(-50%) scale(1.05); }
-        }
     </style>
 </head>
 <body>
@@ -77,11 +60,6 @@
     <!-- Debug Info (Hidden by default) -->
     <div class="debug-info" id="debugInfo">
         Debug Mode: ON
-    </div>
-    
-    <!-- Interaction Hint -->
-    <div class="interaction-hint" id="interactionHint">
-        🗡️ Explore o mundo e encontre o portal dourado para acessar o blog! 🗡️
     </div>
 
   <!-- Game Scripts -->
@@ -122,8 +100,8 @@
         // Inicializar jogo
         async function initGame() {
             try {
-                // Configurar canvas responsivo
-                setupResponsiveCanvas();
+                // Configurar canvas com tamanho fixo
+                setupFixedCanvas();
                 
                 gameClient = new GameClient();
                 await gameClient.init('gameCanvas');
@@ -315,12 +293,13 @@
                 // Inicializar sistema de interação com mouse
                 gameClient.mouseManager = new MouseInteractionManager(gameClient);
                 
-                // Ponto de interação na área "up" - centralizado na tela
-                const canvas = document.getElementById('gameCanvas');
+                // Ponto de interação na área "up" - posição fixa no centro
                 const interactionWidth = 76.9;  // mantém o mesmo tamanho
                 const interactionHeight = 50.5; // mantém o mesmo tamanho
-                const interactionX = (canvas.width / 2) - (interactionWidth / 2);   // centralizado horizontalmente
-                const interactionY = (canvas.height / 2) - (interactionHeight / 2); // centralizado verticalmente
+                
+                // Coordenadas fixas baseadas no tamanho do canvas (800x600)
+                const interactionX = (800 / 2) - (interactionWidth / 2);   // centralizado horizontalmente (400 - 38.45 = 361.55)
+                const interactionY = (600 / 2) - (interactionHeight / 2);  // centralizado verticalmente (300 - 25.25 = 274.75)
                 
                 gameClient.mouseManager.addInteractionPoint(
                     interactionX,        // x
@@ -377,10 +356,8 @@
                 }, 500); // Pequeno delay para garantir que tudo esteja carregado
                 
                 
-                // Configurar redimensionamento
-                window.addEventListener('resize', () => {
-                    setupResponsiveCanvas();
-                });
+                // Canvas tem tamanho fixo - não precisa de redimensionamento
+                // window.addEventListener('resize', () => { ... }); // Removido
                 
                 // Iniciar game loop
                 startGameLoop();
@@ -404,49 +381,23 @@
                     // Não é um erro crítico - o jogo continua funcionando offline
                 }
                 
-        // Configurar canvas responsivo
-        function setupResponsiveCanvas() {
+        // Configurar canvas com tamanho fixo
+        function setupFixedCanvas() {
             const canvas = document.getElementById('gameCanvas');
-            const container = canvas.parentElement;
             
-            // Obter dimensões do container
-            const containerRect = container.getBoundingClientRect();
+            // Definir dimensões fixas (800x600 é um bom tamanho para jogos retrô)
+            const FIXED_WIDTH = 800;
+            const FIXED_HEIGHT = 600;
             
-            // Usar dimensões mais flexíveis para melhor responsividade
-            // Permitir que o canvas use o máximo de espaço disponível
-            let canvasWidth = Math.max(containerRect.width - 8, 400); // Mínimo 400px
-            let canvasHeight = Math.max(containerRect.height - 8, 300); // Mínimo 300px
+            // Definir dimensões do canvas
+            canvas.width = FIXED_WIDTH;
+            canvas.height = FIXED_HEIGHT;
             
-            // Aplicar uma proporção máxima para telas muito largas
-            const maxAspectRatio = 16/9; // Máximo ultra-wide
-            const minAspectRatio = 4/3;  // Mínimo tradicional
+            console.log(`Canvas configurado com tamanho fixo: ${canvas.width}x${canvas.height}`);
             
-            const currentRatio = canvasWidth / canvasHeight;
-            
-            if (currentRatio > maxAspectRatio) {
-                // Muito largo - ajustar largura
-                canvasWidth = canvasHeight * maxAspectRatio;
-            } else if (currentRatio < minAspectRatio) {
-                // Muito alto - ajustar altura
-                canvasHeight = canvasWidth / minAspectRatio;
-            }
-            
-            // Garantir que não exceda container
-            if (canvasWidth > containerRect.width - 8) {
-                canvasWidth = containerRect.width - 8;
-                canvasHeight = canvasWidth / (currentRatio > maxAspectRatio ? maxAspectRatio : currentRatio);
-            }
-            
-            if (canvasHeight > containerRect.height - 8) {
-                canvasHeight = containerRect.height - 8;
-                canvasWidth = canvasHeight * (currentRatio < minAspectRatio ? minAspectRatio : currentRatio);
-            }
-            
-            // Definir dimensões do canvas (valores inteiros para melhor renderização)
-            canvas.width = Math.floor(canvasWidth);
-            canvas.height = Math.floor(canvasHeight);
-            
-            console.log(`Canvas redimensionado para: ${canvas.width}x${canvas.height} (ratio: ${(canvas.width/canvas.height).toFixed(2)})`);
+            // Salvar dimensões como constantes globais para fácil acesso
+            window.GAME_WIDTH = FIXED_WIDTH;
+            window.GAME_HEIGHT = FIXED_HEIGHT;
         }
                 
         } catch (error) {
