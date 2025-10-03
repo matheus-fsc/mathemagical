@@ -32,17 +32,13 @@ class NetworkManager {
     connect(playerData = {}) {
         return new Promise((resolve, reject) => {
             try {
-                // Carrega socket.io do CDN se não estiver carregado
+                // Socket.io já deve estar carregado via script tag
                 if (typeof io === 'undefined') {
-                    console.log('📦 Carregando Socket.io...');
-                    const script = document.createElement('script');
-                    script.src = 'https://cdn.socket.io/4.7.4/socket.io.min.js';
-                    script.onload = () => this.tryConnection(playerData, resolve, reject);
-                    script.onerror = () => reject(new Error('Falha ao carregar Socket.io'));
-                    document.head.appendChild(script);
-                } else {
-                    this.tryConnection(playerData, resolve, reject);
+                    console.error('Socket.io não está disponível. Verifique se o script foi carregado.');
+                    reject(new Error('Socket.io não disponível'));
+                    return;
                 }
+                this.tryConnection(playerData, resolve, reject);
             } catch (error) {
                 reject(error);
             }
