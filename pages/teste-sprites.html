@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste de Sprites</title>
+</head>
+<body>
+    <h1>Teste de Carregamento de Sprites</h1>
+    
+    <h2>Sprites de Caminhada:</h2>
+    <div>
+        <img src="./sprites/walk/Link (Back).gif" alt="Walk Back" style="border: 1px solid red;">
+        <img src="./sprites/walk/Link (Front)1.gif" alt="Walk Front" style="border: 1px solid red;">
+        <img src="./sprites/walk/Link (Left)1.gif" alt="Walk Left" style="border: 1px solid red;">
+    </div>
+    
+    <h2>Sprites de Ataque:</h2>
+    <div>
+        <img src="./sprites/attackSword/Link (Normal) (Back) - Wooden Sword.gif" alt="Attack Back" style="border: 1px solid blue;">
+        <img src="./sprites/attackSword/Link (Normal) (Front) - Wooden Sword1.gif" alt="Attack Front" style="border: 1px solid blue;">
+        <img src="./sprites/attackSword/Link (Normal) (Left) - Wooden Sword1.gif" alt="Attack Left" style="border: 1px solid blue;">
+    </div>
+    
+    <script>
+        // Teste de carregamento via JavaScript
+        const testSprites = [
+            './sprites/walk/Link (Back).gif',
+            './sprites/walk/Link (Front)1.gif', 
+            './sprites/walk/Link (Left)1.gif',
+            './sprites/attackSword/Link (Normal) (Back) - Wooden Sword.gif',
+            './sprites/attackSword/Link (Normal) (Front) - Wooden Sword1.gif',
+            './sprites/attackSword/Link (Normal) (Left) - Wooden Sword1.gif'
+        ];
+        
+        testSprites.forEach(path => {
+            const img = new Image();
+            img.onload = () => {
+                console.log(`✅ Carregado: ${path} (${img.naturalWidth}x${img.naturalHeight})`);
+            };
+            img.onerror = () => {
+                console.error(`❌ Erro ao carregar: ${path}`);
+            };
+            img.src = path;
+        });
+    </script>
+</body>
+</html>

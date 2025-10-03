@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Game - Multiplayer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #222;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        h1 {
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+        
+        #gameCanvas {
+            border: 2px solid #4CAF50;
+            background: #333;
+            display: block;
+            margin: 20px 0;
+        }
+        
+        .controls {
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        .controls h3 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+        
+        .controls p {
+            margin: 5px 0;
+        }
+        
+        .connection-panel {
+            background: #444;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        input, button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        input {
+            background: #555;
+            color: #fff;
+            border: 1px solid #666;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+        
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            font-weight: bold;
+        }
+        
+        .status.connected {
+            color: #4CAF50;
+        }
+        
+        .status.disconnected {
+            color: #ff4444;
+        }
+        
+        .status.singleplayer {
+            color: #FF9800;
+        }
+        
+        .logs {
+            background: #111;
+            padding: 10px;
+            border-radius: 4px;
+            height: 100px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🗡️ Link Game - Multiplayer</h1>
+    
+    <div class="connection-panel">
+        <label>Nickname:</label>
+        <input type="text" id="nicknameInput" value="Player" maxlength="20">
+        
+        <label>Servidor:</label>
+        <input type="text" id="serverInput" value="http://localhost:3000" style="width: 200px;">
+        
+        <button id="connectBtn">Conectar</button>
+        <button id="disconnectBtn" disabled>Desconectar</button>
+        
+        <span class="status disconnected" id="statusIndicator">Desconectado</span>
+    </div>
+
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <div class="controls">
+        <h3>🎮 Controles</h3>
+        <p><strong>WASD / Setas:</strong> Mover o Link</p>
+        <p><strong>X / Z / Enter:</strong> Atacar</p>
+        <p><strong>F1:</strong> Toggle debug (FPS, latência, etc.)</p>
+        <p><strong>F2:</strong> Conectar/Desconectar rapidamente</p>
+    </div>
+
+    <div class="controls">
+        <h3>📊 Logs do Sistema</h3>
+        <div id="gameLogs" class="logs">Aguardando conexão...\n</div>
+    </div>
+
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    
+    <!-- Game Scripts -->
+    <script src="../input/inputManager.js"></script>
+    <script src="../sprites/frameBasedSpriteManager.js"></script>
+    <script src="../legacy/frameBasedPlayer.js"></script>
+    <script src="../network/networkManager.js"></script>
+    <script src="../network/multiplayerManager.js"></script>
+    <script src="../core/gameClient.js"></script>
+
+    <script>
+        // Inicialização do jogo
+        let gameClient = null;
+        let gameLoop = null;
+        let lastTime = 0;
+
+        // Elementos da UI
+        const nicknameInput = document.getElementById('nicknameInput');
+        const serverInput = document.getElementById('serverInput');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const gameLogs = document.getElementById('gameLogs');
+
+        // Sobrescrever console.log para mostrar nos logs da tela
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addLogMessage(args.join(' '));
+        };
+
+        function addLogMessage(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            gameLogs.textContent += `[${timestamp}] ${message}\n`;
+            gameLogs.scrollTop = gameLogs.scrollHeight;
+        }
+
+        // Inicializar cliente do jogo
+        async function initGame() {
+            try {
+                gameClient = new GameClient();
+                await gameClient.init('gameCanvas', {
+                    nickname: nicknameInput.value,
+                    serverUrl: serverInput.value
+                });
+                
+                // Iniciar game loop
+                startGameLoop();
+                
+                console.log('✅ Jogo inicializado com sucesso');
+                
+                // Tentar conectar automaticamente
+                await autoConnect();
+                
+            } catch (error) {
+                console.error('❌ Erro ao inicializar jogo:', error);
+                addLogMessage(`Erro: ${error.message}`);
+            }
+        }
+
+        // Conectar automaticamente, fallback para singleplayer
+        async function autoConnect() {
+            console.log('🔄 Tentando conectar automaticamente...');
+            addLogMessage('Tentando conectar automaticamente...');
+            
+            try {
+                // Tentar conectar com timeout
+                const connectPromise = gameClient.connect(nicknameInput.value);
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout de conexão')), 5000)
+                );
+                
+                await Promise.race([connectPromise, timeoutPromise]);
+                
+                if (gameClient.isConnected()) {
+                    console.log('✅ Conectado automaticamente ao servidor multiplayer');
+                    addLogMessage('✅ Modo Multiplayer ativo');
+                } else {
+                    throw new Error('Falha na conexão');
+                }
+                
+            } catch (error) {
+                console.log('⚠️ Não foi possível conectar ao servidor, ativando modo singleplayer');
+                addLogMessage('⚠️ Modo Singleplayer ativo (servidor indisponível)');
+                
+                // Garantir que está em modo singleplayer
+                gameClient.gameState.isConnected = false;
+                gameClient.gameState.isGameRunning = true;
+                
+                // Atualizar UI para mostrar modo singleplayer
+                statusIndicator.textContent = 'Singleplayer';
+                statusIndicator.className = 'status singleplayer';
+            }
+            
+            updateUI();
+        }
+
+        // Game loop
+        function startGameLoop() {
+            function gameLoop(currentTime) {
+                const deltaTime = currentTime - lastTime;
+                lastTime = currentTime;
+
+                if (gameClient) {
+                    gameClient.update(deltaTime);
+                    gameClient.render();
+                }
+
+                requestAnimationFrame(gameLoop);
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Eventos dos botões
+        connectBtn.addEventListener('click', async () => {
+            if (gameClient) {
+                connectBtn.disabled = true;
+                addLogMessage('Tentando conectar manualmente...');
+                
+                try {
+                    await gameClient.connect(nicknameInput.value);
+                    if (gameClient.isConnected()) {
+                        addLogMessage('✅ Conectado ao servidor multiplayer');
+                    } else {
+                        addLogMessage('❌ Falha na conexão manual');
+                    }
+                } catch (error) {
+                    addLogMessage(`❌ Erro na conexão: ${error.message}`);
+                } finally {
+                    connectBtn.disabled = false;
+                }
+                
+                updateUI();
+            }
+        });
+
+        disconnectBtn.addEventListener('click', () => {
+            if (gameClient) {
+                gameClient.disconnect();
+                updateUI();
+            }
+        });
+
+        // Atualizar UI baseado no estado da conexão
+        function updateUI() {
+            if (gameClient && gameClient.isConnected()) {
+                statusIndicator.textContent = 'Conectado - Multiplayer';
+                statusIndicator.className = 'status connected';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                nicknameInput.disabled = true;
+                serverInput.disabled = true;
+            } else if (gameClient && gameClient.gameState.isGameRunning) {
+                // Modo singleplayer ativo
+                statusIndicator.textContent = 'Singleplayer';
+                statusIndicator.className = 'status singleplayer';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                nicknameInput.disabled = false;
+                serverInput.disabled = false;
+            } else {
+                statusIndicator.textContent = 'Desconectado';
+                statusIndicator.className = 'status disconnected';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                nicknameInput.disabled = false;
+                serverInput.disabled = false;
+            }
+        }
+
+        // Atualizar UI periodicamente
+        setInterval(updateUI, 1000);
+
+        // Inicializar quando a página carregar
+        window.addEventListener('load', initGame);
+        
+        // Desconectar quando sair da página
+        window.addEventListener('beforeunload', () => {
+            if (gameClient) {
+                gameClient.disconnect();
+            }
+        });
+    </script>
+</body>
+</html>

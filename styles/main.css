@@ -1,0 +1,59 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #1a1a2e;
+    color: #f0f0f0;
+    font-family: 'Courier New', monospace;
+    line-height: 1.6;
+    overflow-x: hidden;
+    background-image: 
+        radial-gradient(circle at 25% 25%, #16213e 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, #0f3460 0%, transparent 50%);
+    min-height: 100vh;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .title {
+        font-size: 2rem;
+    }
+    
+    .game-container {
+        width: 100%;
+        height: 60vh; /* Menor em mobile */
+        margin: 10px auto;
+    }
+    
+    #gameCanvas {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .interactive-buttons {
+        grid-template-columns: 1fr;
+        margin: 20px 10px;
+    }
+    
+    .main-container {
+        padding: 0 5px;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-container {
+        height: 50vh;
+    }
+    
+    .title {
+        font-size: 1.5rem;
+    }
+    
+    .subtitle {
+        font-size: 1rem;
+    }
+}

@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' data: blob: https://link-websocket-game.onrender.com; font-src 'self';">
+    <title>🗡️ Link's Adventure Blog | A Legendary Journey</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="favicon.ico">
+    <!-- CSS Styles -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/layout.css">
+    <link rel="stylesheet" href="styles/game.css">
+    <link rel="stylesheet" href="styles/buttons.css">
+    <link rel="stylesheet" href="styles/panels.css">
+    <link rel="stylesheet" href="styles/effects.css">
+</head>
+<body>
+    <!-- Main Container -->
+    <div class="main-container">
+        
+        <!-- Header Vintage -->
+        <header class="vintage-header">
+            <h1 class="title">🗡️ LINK'S ADVENTURE BLOG</h1>
+            <p class="subtitle">~ A Legendary Journey Through Hyrule & Code ~</p>
+        </header>
+
+        <!-- Game Section -->
+        <section class="game-section">
+            <div class="game-container">
+                <canvas id="gameCanvas"></canvas>
+                <div class="game-status" id="gameStatus">
+                    🟡 Modo Aventura Ativo
+                </div>
+                <div class="connection-status" id="connectionStatus" style="font-size: 12px; color: #666; margin-top: 5px; display: none;">
+                    🔄 Conectando...
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation Section -->
+        <section class="navigation-section">
+            <nav class="interactive-buttons">
+                <a href="#blog" class="zelda-button" data-target="blog" data-hitbox-x="0.15" data-hitbox-y="0.2">
+                    <span class="button-icon">📝</span>
+                    <span class="button-title">Blog Adventures</span>
+                    <span class="button-desc">Jornadas e descobertas</span>
+                </a>
+                
+                <a href="#projects" class="zelda-button" data-target="projects" data-hitbox-x="0.5" data-hitbox-y="0.2">
+                    <span class="button-icon">🛠️</span>
+                    <span class="button-title">Code Dungeons</span>
+                    <span class="button-desc">Projetos e experimentos</span>
+                </a>
+                
+                <a href="#gallery" class="zelda-button" data-target="gallery" data-hitbox-x="0.85" data-hitbox-y="0.2">
+                    <span class="button-icon">🖼️</span>
+                    <span class="button-title">Treasure Gallery</span>
+                    <span class="button-desc">Arte e capturas</span>
+                </a>
+                
+                <a href="#about" class="zelda-button" data-target="about" data-hitbox-x="0.15" data-hitbox-y="0.6">
+                    <span class="button-icon">👤</span>
+                    <span class="button-title">Hero's Profile</span>
+                    <span class="button-desc">Sobre o aventureiro</span>
+                </a>
+                
+                <a href="#links" class="zelda-button" data-target="links" data-hitbox-x="0.5" data-hitbox-y="0.6">
+                    <span class="button-icon">🔗</span>
+                    <span class="button-title">Sacred Links</span>
+                    <span class="button-desc">Conexões importantes</span>
+                </a>
+                
+                <a href="#contact" class="zelda-button" data-target="contact" data-hitbox-x="0.85" data-hitbox-y="0.6">
+                    <span class="button-icon">📬</span>
+                    <span class="button-title">Send a Message</span>
+                    <span class="button-desc">Fale com o herói</span>
+                </a>
+            </nav>
+        </section>
+
+        <!-- Info Section -->
+        <section class="info-section">
+            <div class="info-panel">
+                <h3>🎮 Como Navegar na Aventura</h3>
+                <p>
+                    Bem-vindo ao meu cantinho digital inspirado em Zelda! Use o Link para explorar e interagir com os elementos da página. 
+                    Move-se pelo mundo e ataque os botões dourados para navegar pelas diferentes seções do blog.
+                </p>
+        
+        <div class="controls-info">
+            <div class="control-item">
+                <span class="control-key">WASD / Setas:</span> Mover o Link
+            </div>
+            <div class="control-item">
+                    <div class="controls-info">
+                    <div class="control-item">
+                        <span class="control-key">WASD / Setas:</span> Mover Link
+                    </div>
+                    <div class="control-item">
+                        <span class="control-key">X / Z / Enter:</span> Atacar botões
+                    </div>
+                    <div class="control-item">
+                        <span class="control-key">F1:</span> Mostrar/ocultar debug
+                    </div>
+                    <div class="control-item">
+                        <span class="control-key">F2:</span> Reset posição
+                    </div>
+                    <div class="control-item">
+                        <span class="control-key">F4:</span> Reconectar servidor
+                    </div>
+                    <div class="control-item">
+                        <button id="testConnection" class="control-key" style="background: #4CAF50; color: white; border: none; padding: 5px 10px; cursor: pointer;">🔗 Testar Conexão</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <h3>🌟 Sobre Este Blog</h3>
+                <p>
+                    Este é meu espaço pessoal onde compartilho aventuras em programação, projetos criativos e reflexões sobre tecnologia. 
+                    Inspirado na nostalgia dos primeiros sites da internet e na magia atemporal de The Legend of Zelda.
+                </p>
+                <p>
+                    Cada seção é uma dungeon diferente com seus próprios tesouros e segredos. Explore à vontade e descubra o que cada 
+                    área tem para oferecer! Os botões dourados são pontos de interação - aproxime-se e ataque para ativá-los.
+                </p>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="vintage-footer">
+            <p>⚔️ Link's Adventure Blog - Crafted with ❤️ and nostalgia ⚔️</p>
+            <div class="visitor-counter">
+                Visitors: 001337
+            </div>
+            <p style="font-size: 0.8rem; margin-top: 10px; color: #888;">
+                "It's dangerous to go alone! Take this website." - Old Man, 2025
+            </p>
+        </footer>
+        
+    </div> <!-- End main-container -->
+
+  <!-- Game Scripts -->
+<script src="config/serverConfig.js"></script>
+<script src="legacy/areaManager.js"></script>
+<script src="input/inputManager.js"></script>
+<script src="sprites/frameBasedSpriteManager.js"></script>
+<script src="legacy/frameBasedPlayer.js"></script>
+<script src="network/networkManagerHTTP.js"></script>
+<script src="network/multiplayerManager.js"></script>
+
+<!-- Component System -->
+<script src="managers/AssetLoader.js"></script>
+<script src="managers/SceneManager.js"></script>
+<script src="managers/CollisionManager.js"></script>
+<script src="managers/InteractionManager.js"></script>
+<script src="components/GameCore.js"></script>
+
+<script src="core/gameClient.js"></script>
+
+    <script>
+        // Inicialização do jogo
+        let gameClient = null;
+
+        // Inicializar jogo
+        async function initGame() {
+            try {
+                // Configurar canvas responsivo
+                setupResponsiveCanvas();
+                
+                gameClient = new GameClient();
+                await gameClient.init('gameCanvas');
+                
+                // Inicializar sistema de componentes
+                window.gameCore = new GameCore();
+                await gameCore.init('gameCanvas');
+                
+                // Integrar com o sistema legado
+                gameCore.integrateWithLegacySystem(gameClient);
+                
+                // Inicializar sistema de interação com mouse
+                gameClient.mouseManager = new MouseInteractionManager(gameClient);
+                
+                // Ponto de interação na área "up" (posição relativa para responsividade)
+                const interactionX = gameClient.canvas.width * 0.58;  // 464/800 = 58%
+                const interactionY = gameClient.canvas.height * 0.708; // 425/600 = 70.8%
+                
+                gameClient.mouseManager.addInteractionPoint(
+                    interactionX - 25,  // x (centrado)
+                    interactionY - 25,  // y (centrado)
+                    50,   // width
+                    50,   // height
+                    (mousePos, point) => {
+                        // Só funciona na área "up"
+                        if (gameClient.areaManager && gameClient.areaManager.getCurrentArea() === 'up') {
+                            alert(`🗡️ Interação na área UP!\nCoordenadas: (${mousePos.x.toFixed(1)}, ${mousePos.y.toFixed(1)})`);
+                        } else {
+                            console.log('🚫 Esta interação só funciona na área UP');
+                        }
+                    },
+                    'area_up_interaction'
+                );
+                
+                // Função helper para facilitar criação de pontos de interação
+                window.addInteractionPoint = (x, y, width, height, action, id) => {
+                    if (gameClient && gameClient.mouseManager) {
+                        return gameClient.mouseManager.addInteractionPoint(x, y, width, height, action, id);
+                    }
+                };
+                
+                window.removeInteractionPoint = (id) => {
+                    if (gameClient && gameClient.mouseManager) {
+                        gameClient.mouseManager.removeInteractionPoint(id);
+                    }
+                };
+                
+                // Helper para obter posição do mouse facilmente
+                window.getMousePos = () => {
+                    if (gameClient && gameClient.mouseManager) {
+                        return gameClient.mouseManager.currentMousePos;
+                    }
+                    return { x: -1, y: -1 };
+                };
+                
+                
+                // Configurar redimensionamento
+                window.addEventListener('resize', () => {
+                    setupResponsiveCanvas();
+                });
+                
+                // Iniciar game loop
+                startGameLoop();
+                
+                // Atualizar status do jogo
+                updateGameStatus();
+                
+                console.log('🎮 Blog interativo inicializado com sucesso!');
+                
+                // ===== CONEXÃO AUTOMÁTICA AO SERVIDOR =====
+                console.log('🔗 Iniciando conexão automática...');
+                showConnectionStatus('🔄 Conectando ao servidor...', true);
+                
+                try {
+                    await gameClient.connect('Player');
+                    console.log('✅ Conectado automaticamente ao servidor multiplayer!');
+                    showConnectionStatus('✅ Conectado!', false);
+                } catch (error) {
+                    console.log('⚠️ Falha na conexão automática, continuando em modo singleplayer:', error.message);
+                    showConnectionStatus('⚠️ Modo offline', false);
+                    // Não é um erro crítico - o jogo continua funcionando offline
+                }
+                
+        // Configurar canvas responsivo
+        function setupResponsiveCanvas() {
+            const canvas = document.getElementById('gameCanvas');
+            const container = canvas.parentElement;
+            
+            // Definir dimensões baseadas no container
+            const containerRect = container.getBoundingClientRect();
+            const aspectRatio = 4/3; // Proporção 4:3
+            
+            let canvasWidth = containerRect.width - 8; // Subtrair border
+            let canvasHeight = canvasWidth / aspectRatio;
+            
+            // Verificar se a altura excede o container
+            if (canvasHeight > containerRect.height - 8) {
+                canvasHeight = containerRect.height - 8;
+                canvasWidth = canvasHeight * aspectRatio;
+            }
+            
+            // Definir dimensões do canvas
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            
+            console.log(`Canvas redimensionado para: ${canvasWidth}x${canvasHeight}`);
+        }
+                
+        } catch (error) {
+            console.error('❌ Erro ao inicializar:', error);
+        }
+    }
+        
+    // ===== FUNÇÕES DE UTILITY =====
+    
+    // Mostrar status de conexão
+    function showConnectionStatus(message, show = true) {
+        const statusElement = document.getElementById('connectionStatus');
+        if (statusElement) {
+            statusElement.textContent = message;
+            statusElement.style.display = show ? 'block' : 'none';
+            
+            // Auto-hide depois de 5 segundos se não for um status de loading
+            if (show && !message.includes('🔄')) {
+                setTimeout(() => {
+                    statusElement.style.display = 'none';
+                }, 5000);
+            }
+        }
+    }
+    
+    // Atualizar status de retry
+    function updateRetryStatus(attempt, maxAttempts, url, delay = 0) {
+        const isRender = url.includes('render.com');
+        const serverType = isRender ? 'Render' : 'servidor';
+        
+        if (delay > 0) {
+            showConnectionStatus(`⏳ Aguardando ${Math.round(delay/1000)}s para retry ${attempt}/${maxAttempts} (${serverType})`, true);
+        } else {
+            showConnectionStatus(`🔄 Tentativa ${attempt}/${maxAttempts} - ${serverType}${isRender ? ' (pode estar em sleep)' : ''}`, true);
+        }
+    }
+
+    // Game loop
+        let lastTime = 0;
+        function startGameLoop() {
+            function gameLoop(currentTime) {
+                const deltaTime = currentTime - lastTime;
+                lastTime = currentTime;
+
+                if (gameClient) {
+                    gameClient.update(deltaTime);
+                    gameClient.render();
+                }
+
+                requestAnimationFrame(gameLoop);
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Atualizar status do jogo
+        function updateGameStatus() {
+            const statusElement = document.getElementById('gameStatus');
+            
+            setInterval(() => {
+                if (gameClient) {
+                    let status = '🔴 Parado';
+                    
+                    if (gameClient.gameState.isConnected) {
+                        const playerCount = gameClient.gameState.players ? Object.keys(gameClient.gameState.players).length : 1;
+                        status = `🟢 Multiplayer (${playerCount} jogador${playerCount > 1 ? 'es' : ''})`;
+                    } else if (gameClient.gameState.isGameRunning) {
+                        status = '🟡 Modo Aventura Solo';
+                    }
+                    
+                    statusElement.textContent = status;
+                }
+            }, 1000);
+        }
+
+        // Função para obter coordenadas do mouse em relação a uma div/element
+        function getMousePosition(event, element) {
+            const rect = element.getBoundingClientRect();
+            const scaleX = element.width / rect.width;   // Escala X do canvas
+            const scaleY = element.height / rect.height; // Escala Y do canvas
+            
+            return {
+                x: (event.clientX - rect.left) * scaleX,
+                y: (event.clientY - rect.top) * scaleY,
+                // Coordenadas brutas (sem escala) caso precise
+                rawX: event.clientX - rect.left,
+                rawY: event.clientY - rect.top,
+                // Informações da div
+                elementRect: rect
+            };
+        }
+
+        // Sistema de pontos de interação via mouse
+        class MouseInteractionManager {
+            constructor(gameClient) {
+                this.gameClient = gameClient;
+                this.canvas = gameClient.canvas;
+                this.interactionPoints = [];
+                this.isMouseDown = false;
+                this.currentMousePos = { x: 0, y: 0 };
+                
+                this.setupMouseEvents();
+                console.log('🖱️ MouseInteractionManager inicializado');
+            }
+
+            setupMouseEvents() {
+                // Rastrear movimento do mouse
+                this.canvas.addEventListener('mousemove', (e) => {
+                    this.currentMousePos = getMousePosition(e, this.canvas);
+                    this.checkInteractions();
+                });
+
+                // Clique do mouse
+                this.canvas.addEventListener('mousedown', (e) => {
+                    this.isMouseDown = true;
+                    const mousePos = getMousePosition(e, this.canvas);
+                    this.handleClick(mousePos);
+                });
+
+                this.canvas.addEventListener('mouseup', (e) => {
+                    this.isMouseDown = false;
+                });
+
+                // Deixar área do canvas
+                this.canvas.addEventListener('mouseleave', (e) => {
+                    this.currentMousePos = { x: -1, y: -1 };
+                });
+            }
+
+            // Adicionar ponto de interação
+            addInteractionPoint(x, y, width, height, action, id = null) {
+                const point = {
+                    id: id || `point_${this.interactionPoints.length}`,
+                    x: x,
+                    y: y,
+                    width: width,
+                    height: height,
+                    action: action,
+                    isHovered: false,
+                    cooldown: 0
+                };
+                
+                this.interactionPoints.push(point);
+                console.log(`🎯 Ponto de interação adicionado: ${point.id} em (${x}, ${y})`);
+                return point;
+            }
+
+            // Remover ponto de interação
+            removeInteractionPoint(id) {
+                this.interactionPoints = this.interactionPoints.filter(point => point.id !== id);
+                console.log(`🗑️ Ponto de interação removido: ${id}`);
+            }
+
+            // Verificar interações com mouse
+            checkInteractions() {
+                this.interactionPoints.forEach(point => {
+                    if (point.cooldown > 0) {
+                        point.cooldown--;
+                    }
+
+                    const wasHovered = point.isHovered;
+                    point.isHovered = this.isPointInside(this.currentMousePos, point);
+
+                    // Entrou na área
+                    if (point.isHovered && !wasHovered) {
+                        this.onPointEnter(point);
+                    }
+                    
+                    // Saiu da área
+                    if (!point.isHovered && wasHovered) {
+                        this.onPointLeave(point);
+                    }
+                });
+            }
+
+            // Verificar se ponto está dentro da área
+            isPointInside(mousePos, area) {
+                return mousePos.x >= area.x && 
+                       mousePos.x <= area.x + area.width &&
+                       mousePos.y >= area.y && 
+                       mousePos.y <= area.y + area.height;
+            }
+
+            // Eventos de hover
+            onPointEnter(point) {
+                this.canvas.style.cursor = 'pointer';
+                console.log(`🎯 Mouse entrou na área: ${point.id}`);
+            }
+
+            onPointLeave(point) {
+                this.canvas.style.cursor = 'default';
+                console.log(`🎯 Mouse saiu da área: ${point.id}`);
+            }
+
+            // Manipular clique
+            handleClick(mousePos) {
+                this.interactionPoints.forEach(point => {
+                    if (this.isPointInside(mousePos, point) && point.cooldown === 0) {
+                        console.log(`🖱️ Clique em: ${point.id} na posição (${mousePos.x.toFixed(1)}, ${mousePos.y.toFixed(1)})`);
+                        
+                        // Executar ação
+                        if (typeof point.action === 'function') {
+                            point.action(mousePos, point);
+                        }
+                        
+                        // Cooldown para evitar spam
+                        point.cooldown = 30; // ~0.5 segundos
+                    }
+                });
+            }
+
+            // Renderizar áreas de debug
+            renderDebugAreas(ctx) {
+                if (!this.gameClient.debug.enabled) return;
+
+                ctx.save();
+                
+                this.interactionPoints.forEach(point => {
+                    // Área de interação
+                    ctx.strokeStyle = point.isHovered ? '#00FF00' : '#FF6600';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([3, 3]);
+                    ctx.strokeRect(point.x, point.y, point.width, point.height);
+                    
+                    // Label
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.font = '12px Arial';
+                    ctx.fillText(point.id, point.x, point.y - 5);
+                    
+                    // Highlight se estiver hovering
+                    if (point.isHovered) {
+                        ctx.fillStyle = 'rgba(0, 255, 0, 0.2)';
+                        ctx.fillRect(point.x, point.y, point.width, point.height);
+                    }
+                });
+
+                // Mostrar posição atual do mouse
+                if (this.currentMousePos.x >= 0) {
+                    ctx.fillStyle = '#FF0000';
+                    ctx.beginPath();
+                    ctx.arc(this.currentMousePos.x, this.currentMousePos.y, 3, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Coordenadas
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.font = '10px Arial';
+                    ctx.fillText(`(${this.currentMousePos.x.toFixed(0)}, ${this.currentMousePos.y.toFixed(0)})`, 
+                                this.currentMousePos.x + 5, this.currentMousePos.y - 5);
+                }
+                
+                ctx.restore();
+            }
+        }
+
+        // Teclas especiais
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F1') {
+                // Toggle debug de colisões
+                if (window.gameCore) {
+                    gameCore.collisionManager.debugMode = !gameCore.collisionManager.debugMode;
+                    console.log('🐛 Debug de colisões:', gameCore.collisionManager.debugMode);
+                }
+            }
+            
+            if (e.key === 'F2') {
+                // Toggle debug de interações
+                if (window.gameCore) {
+                    gameCore.interactionManager.debugMode = !gameCore.interactionManager.debugMode;
+                    console.log('🐛 Debug de interações:', gameCore.interactionManager.debugMode);
+                }
+            }
+            
+            if (e.key === 'F3') {
+                // Reset posição do player
+                if (gameClient && gameClient.player) {
+                    gameClient.player.x = 400;
+                    gameClient.player.y = 300;
+                    console.log('🔄 Posição resetada');
+                }
+            }
+            
+            if (e.key === 'F4') {
+                // Reconectar ao servidor
+                if (gameClient) {
+                    console.log('🔄 Tentando reconectar...');
+                    if (gameClient.gameState.isConnected) {
+                        gameClient.disconnect();
+                        setTimeout(() => {
+                            gameClient.connect('Player').catch(err => {
+                                console.log('❌ Falha na reconexão:', err.message);
+                            });
+                        }, 1000);
+                    } else {
+                        gameClient.connect('Player').catch(err => {
+                            console.log('❌ Falha na conexão:', err.message);
+                        });
+                    }
+                }
+            }
+        });
+
+        // Botão de teste de conexão
+        document.addEventListener('DOMContentLoaded', () => {
+            const testButton = document.getElementById('testConnection');
+            if (testButton) {
+                testButton.addEventListener('click', async () => {
+                    console.log('🧪 Iniciando teste de conexão...');
+                    testButton.textContent = '🔄 Testando...';
+                    testButton.disabled = true;
+                    
+                    try {
+                        const networkManager = new NetworkManager();
+                        await networkManager.connect({
+                            name: 'TestPlayer',
+                            color: '#00FF00'
+                        });
+                        
+                        console.log('✅ Teste de conexão bem-sucedido!');
+                        testButton.textContent = '✅ Conectado!';
+                        testButton.style.background = '#4CAF50';
+                        
+                        // Desconectar após teste
+                        setTimeout(() => {
+                            networkManager.disconnect();
+                            testButton.textContent = '🔗 Testar Conexão';
+                            testButton.disabled = false;
+                            testButton.style.background = '#4CAF50';
+                        }, 3000);
+                        
+                    } catch (error) {
+                        console.error('❌ Teste de conexão falhou:', error);
+                        testButton.textContent = '❌ Falhou';
+                        testButton.style.background = '#f44336';
+                        
+                        setTimeout(() => {
+                            testButton.textContent = '🔗 Testar Conexão';
+                            testButton.disabled = false;
+                            testButton.style.background = '#4CAF50';
+                        }, 3000);
+                    }
+                });
+            }
+        });
+
+        // Inicializar quando a página carregar
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>

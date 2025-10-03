@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Jogo de Plataforma - Link</title>
+    <link href="/style.css" rel="stylesheet" type="text/css" media="all">
+    <style>
+      .game-mode-selector {
+        background: #333;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+        text-align: center;
+      }
+      
+      .mode-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin: 15px 0;
+      }
+      
+      .mode-btn {
+        padding: 12px 24px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background 0.3s;
+      }
+      
+      .mode-btn:hover {
+        background: #45a049;
+      }
+      
+      .mode-btn.secondary {
+        background: #2196F3;
+      }
+      
+      .mode-btn.secondary:hover {
+        background: #1976D2;
+      }
+      
+      .multiplayer-config {
+        background: #444;
+        padding: 15px;
+        border-radius: 6px;
+        margin: 15px 0;
+        display: none;
+      }
+      
+      .config-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin: 10px 0;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      
+      .config-input {
+        padding: 8px 12px;
+        border: 1px solid #666;
+        border-radius: 4px;
+        background: #555;
+        color: white;
+        font-size: 14px;
+      }
+      
+      .status-indicator {
+        font-weight: bold;
+        margin-left: 10px;
+      }
+      
+      .status-indicator.connected {
+        color: #4CAF50;
+      }
+      
+      .status-indicator.disconnected {
+        color: #ff4444;
+      }
+      
+      .status-indicator.connecting {
+        color: #FFA500;
+      }
+      
+      #gameCanvas {
+        display: none;
+      }
+      
+      .game-active #gameCanvas {
+        display: block;
+      }
+      
+      .game-active .game-mode-selector {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game-container">
+      <h1>🗡️ Mini Jogo de Plataforma - Link</h1>
+      <p><strong>� Escolha o modo de jogo</strong></p>
+      
+      <!-- Seletor de modo de jogo -->
+      <div class="game-mode-selector">
+        <h3>Selecione o modo de jogo:</h3>
+        <div class="mode-buttons">
+          <button class="mode-btn" onclick="startSinglePlayer()">
+            🏠 Single Player
+          </button>
+          <button class="mode-btn secondary" onclick="showMultiplayerConfig()">
+            🌐 Multiplayer Online
+          </button>
+        </div>
+        
+        <!-- Configuração do multiplayer -->
+        <div class="multiplayer-config" id="multiplayerConfig">
+          <h4>Configuração Multiplayer</h4>
+          <div class="config-row">
+            <label>Nickname:</label>
+            <input type="text" id="nicknameInput" class="config-input" value="Player" maxlength="20">
+          </div>
+          <div class="config-row">
+            <label>Servidor:</label>
+            <input type="text" id="serverInput" class="config-input" value="http://localhost:3000" style="width: 200px;">
+            <button class="mode-btn secondary" onclick="detectServer()" id="detectServerBtn" style="padding: 6px 12px; font-size: 12px;">
+              🔍 Detectar
+            </button>
+          </div>
+          <div class="config-row">
+            <span id="serverStatus" style="font-size: 12px; color: #ccc;">Status: Desconhecido</span>
+          </div>
+          <div class="config-row">
+            <button class="mode-btn" onclick="startMultiplayer()">
+              🚀 Conectar e Jogar
+            </button>
+            <button class="mode-btn secondary" onclick="hideMultiplayerConfig()">
+              ❌ Cancelar
+            </button>
+            <span class="status-indicator disconnected" id="connectionStatus">Desconectado</span>
+          </div>
+        </div>
+      </div>
+      
+      <canvas id="gameCanvas" width="800" height="600"></canvas>
+      
+      <div class="controls">
+        <p><strong>Controles:</strong> WASD/Setas - Mover | X/Z/Enter - Ataque</p>
+        <p><strong>Debug:</strong> F1 - Info | F2 - Conectar/Desconectar (Multiplayer) | R - Reset | P - Pause</p>
+        <div id="gameInfo" style="margin-top: 10px; font-size: 14px;"></div>
+      </div>
+    </div>
+    
+    <!-- Socket.IO (só carrega em modo multiplayer) -->
+    <script id="socketIOScript"></script>
+    
+    <!-- Configuração do servidor -->
+    <script src="/config/serverConfig.js"></script>
+    
+    <!-- Scripts do jogo -->
+    <script src="/sprites/frameBasedSpriteManager.js"></script>
+    <script src="/input/inputManager.js"></script>
+    <script src="/legacy/frameBasedPlayer.js"></script>
+    
+    <!-- Scripts multiplayer (carregados dinamicamente) -->
+    <script id="multiplayerScripts"></script>
+    
+    <!-- Script principal -->
+    <script>
+      // Estado global do jogo
+      let gameMode = null; // 'single' ou 'multiplayer'
+      let gameInstance = null;
+      let gameClient = null;
+      let isGameRunning = false;
+      
+      // Elementos da UI
+      const gameContainer = document.querySelector('.game-container');
+      const multiplayerConfig = document.getElementById('multiplayerConfig');
+      const connectionStatus = document.getElementById('connectionStatus');
+      const gameInfo = document.getElementById('gameInfo');
+      
+      // Iniciar modo single player
+      async function startSinglePlayer() {
+        try {
+          gameMode = 'single';
+          gameContainer.classList.add('game-active');
+          
+          // Carregar script single player
+          await loadScript('/core/scripts.js');
+          
+          updateGameInfo('Modo: Single Player | Status: Rodando');
+          console.log('🎮 Modo Single Player iniciado');
+          
+        } catch (error) {
+          console.error('❌ Erro ao iniciar single player:', error);
+          alert('Erro ao iniciar o jogo single player!');
+          gameContainer.classList.remove('game-active');
+        }
+      }
+      
+      // Mostrar configuração multiplayer
+      function showMultiplayerConfig() {
+        multiplayerConfig.style.display = 'block';
+      }
+      
+      // Esconder configuração multiplayer
+      function hideMultiplayerConfig() {
+        multiplayerConfig.style.display = 'none';
+      }
+      
+      // Iniciar modo multiplayer
+      async function startMultiplayer() {
+        try {
+          const nickname = document.getElementById('nicknameInput').value.trim();
+          const serverUrl = document.getElementById('serverInput').value.trim();
+          
+          if (!nickname) {
+            alert('Por favor, digite um nickname!');
+            return;
+          }
+          
+          if (!serverUrl) {
+            alert('Por favor, digite a URL do servidor!');
+            return;
+          }
+          
+          connectionStatus.textContent = 'Conectando...';
+          connectionStatus.className = 'status-indicator connecting';
+          
+          gameMode = 'multiplayer';
+          
+          // Carregar scripts necessários
+          await loadMultiplayerScripts();
+          
+          // Criar cliente do jogo
+          gameClient = new GameClient();
+          await gameClient.init('gameCanvas', {
+            nickname: nickname,
+            serverUrl: serverUrl
+          });
+          
+          // Configurar callbacks para atualizar UI
+          setupMultiplayerCallbacks();
+          
+          // Conectar ao servidor
+          await gameClient.connect(nickname);
+          
+          gameContainer.classList.add('game-active');
+          startGameLoop();
+          
+          console.log('🌐 Modo Multiplayer iniciado');
+          
+        } catch (error) {
+          console.error('❌ Erro ao iniciar multiplayer:', error);
+          connectionStatus.textContent = 'Erro na conexão';
+          connectionStatus.className = 'status-indicator disconnected';
+          alert(`Erro ao conectar: ${error.message}`);
+        }
+      }
+      
+      // Carregar scripts multiplayer
+      async function loadMultiplayerScripts() {
+        // Socket.IO
+        await loadScript('https://cdn.socket.io/4.7.4/socket.io.min.js', 'socketIOScript');
+        
+        // Scripts multiplayer
+        await loadScript('/network/networkManager.js');
+        await loadScript('/network/multiplayerManager.js');
+        await loadScript('/network/mockServer.js'); // Mock server para desenvolvimento
+        await loadScript('/core/gameClient.js');
+      }
+      
+      // Configurar callbacks do multiplayer
+      function setupMultiplayerCallbacks() {
+        gameClient.networkManager.setCallback('connected', () => {
+          connectionStatus.textContent = 'Conectado';
+          connectionStatus.className = 'status-indicator connected';
+          updateGameInfo('Modo: Multiplayer | Status: Conectado');
+        });
+        
+        gameClient.networkManager.setCallback('disconnected', (reason) => {
+          connectionStatus.textContent = 'Desconectado';
+          connectionStatus.className = 'status-indicator disconnected';
+          updateGameInfo(`Modo: Multiplayer | Status: Desconectado (${reason})`);
+        });
+        
+        gameClient.networkManager.setCallback('playerConnected', (playerData) => {
+          updateGameInfo(`Modo: Multiplayer | Jogadores: ${gameClient.multiplayerManager.getPlayerCount() + 1}`);
+        });
+        
+        gameClient.networkManager.setCallback('playerDisconnected', (data) => {
+          updateGameInfo(`Modo: Multiplayer | Jogadores: ${gameClient.multiplayerManager.getPlayerCount() + 1}`);
+        });
+      }
+      
+      // Game loop para multiplayer
+      let lastTime = 0;
+      function startGameLoop() {
+        function gameLoop(currentTime) {
+          if (!isGameRunning || gameMode !== 'multiplayer') return;
+          
+          const deltaTime = currentTime - lastTime;
+          lastTime = currentTime;
+          
+          if (gameClient) {
+            gameClient.update(deltaTime);
+            gameClient.render();
+          }
+          
+          requestAnimationFrame(gameLoop);
+        }
+        
+        isGameRunning = true;
+        requestAnimationFrame(gameLoop);
+      }
+      
+      // Atualizar informações do jogo
+      function updateGameInfo(info) {
+        gameInfo.textContent = info;
+      }
+      
+      // Função auxiliar para carregar scripts
+      function loadScript(src, elementId = null) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = src;
+          script.onload = resolve;
+          script.onerror = reject;
+          
+          if (elementId) {
+            const existingScript = document.getElementById(elementId);
+            if (existingScript) {
+              existingScript.remove();
+            }
+            script.id = elementId;
+          }
+          
+          document.head.appendChild(script);
+        });
+      }
+      
+      // Resetar jogo
+      function resetGame() {
+        if (gameClient) {
+          gameClient.disconnect();
+          gameClient = null;
+        }
+        
+        isGameRunning = false;
+        gameMode = null;
+        gameContainer.classList.remove('game-active');
+        
+        // Reset UI
+        connectionStatus.textContent = 'Desconectado';
+        connectionStatus.className = 'status-indicator disconnected';
+        updateGameInfo('');
+        hideMultiplayerConfig();
+        
+        console.log('🔄 Jogo resetado');
+      }
+      
+      // Eventos globais
+      window.addEventListener('keydown', (e) => {
+        // ESC para voltar ao menu
+        if (e.code === 'Escape') {
+          resetGame();
+        }
+        
+        // F2 para toggle conexão multiplayer
+        if (e.code === 'F2' && gameMode === 'multiplayer') {
+          if (gameClient.isConnected()) {
+            gameClient.disconnect();
+          } else {
+            gameClient.connect();
+          }
+        }
+      });
+      
+      // Desconectar ao sair da página
+      window.addEventListener('beforeunload', () => {
+        if (gameClient) {
+          gameClient.disconnect();
+        }
+      });
+      
+      console.log('🎮 Sistema de jogo inicializado. Escolha um modo para começar!');
+      
+      // Auto-detectar servidor ao carregar a página
+      window.addEventListener('load', async () => {
+        // Verificar se há um servidor disponível
+        try {
+          const serverUrl = await SERVER_CONFIG.autoDetect();
+          document.getElementById('serverInput').value = serverUrl;
+          
+          const status = await SERVER_CONFIG.checkServerStatus(serverUrl);
+          updateServerStatus(status);
+          
+          if (status.online) {
+            console.log('🌐 Servidor detectado automaticamente:', serverUrl);
+          }
+        } catch (error) {
+          console.log('⚠️ Servidor não detectado, usando configuração manual');
+          updateServerStatus({ online: false, error: 'Não detectado' });
+        }
+      });
+    </script>
+  </body>
+</html>

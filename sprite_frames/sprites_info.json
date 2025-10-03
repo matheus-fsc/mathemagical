@@ -1,0 +1,135 @@
+{
+  "sprites": {
+    "link_walk_back": {
+      "name": "link_walk_back",
+      "width": 24,
+      "height": 32,
+      "frame_count": 2,
+      "frame_duration": 250,
+      "frames": [
+        {
+          "filename": "link_walk_back_frame_000.png",
+          "frame_number": 0,
+          "duration": 250
+        },
+        {
+          "filename": "link_walk_back_frame_001.png",
+          "frame_number": 1,
+          "duration": 250
+        }
+      ]
+    },
+    "link_walk_front": {
+      "name": "link_walk_front",
+      "width": 30,
+      "height": 32,
+      "frame_count": 2,
+      "frame_duration": 250,
+      "frames": [
+        {
+          "filename": "link_walk_front_frame_000.png",
+          "frame_number": 0,
+          "duration": 250
+        },
+        {
+          "filename": "link_walk_front_frame_001.png",
+          "frame_number": 1,
+          "duration": 250
+        }
+      ]
+    },
+    "link_walk_left": {
+      "name": "link_walk_left",
+      "width": 30,
+      "height": 32,
+      "frame_count": 2,
+      "frame_duration": 250,
+      "frames": [
+        {
+          "filename": "link_walk_left_frame_000.png",
+          "frame_number": 0,
+          "duration": 250
+        },
+        {
+          "filename": "link_walk_left_frame_001.png",
+          "frame_number": 1,
+          "duration": 250
+        }
+      ]
+    },
+    "link_attack_back": {
+      "name": "link_attack_back",
+      "width": 32,
+      "height": 56,
+      "frame_count": 3,
+      "frame_duration": 300,
+      "frames": [
+        {
+          "filename": "link_attack_back_frame_000.png",
+          "frame_number": 0,
+          "duration": 300
+        },
+        {
+          "filename": "link_attack_back_frame_001.png",
+          "frame_number": 1,
+          "duration": 50
+        },
+        {
+          "filename": "link_attack_back_frame_002.png",
+          "frame_number": 2,
+          "duration": 250
+        }
+      ]
+    },
+    "link_attack_front": {
+      "name": "link_attack_front",
+      "width": 32,
+      "height": 54,
+      "frame_count": 3,
+      "frame_duration": 300,
+      "frames": [
+        {
+          "filename": "link_attack_front_frame_000.png",
+          "frame_number": 0,
+          "duration": 300
+        },
+        {
+          "filename": "link_attack_front_frame_001.png",
+          "frame_number": 1,
+          "duration": 50
+        },
+        {
+          "filename": "link_attack_front_frame_002.png",
+          "frame_number": 2,
+          "duration": 250
+        }
+      ]
+    },
+    "link_attack_left": {
+      "name": "link_attack_left",
+      "width": 54,
+      "height": 34,
+      "frame_count": 3,
+      "frame_duration": 300,
+      "frames": [
+        {
+          "filename": "link_attack_left_frame_000.png",
+          "frame_number": 0,
+          "duration": 300
+        },
+        {
+          "filename": "link_attack_left_frame_001.png",
+          "frame_number": 1,
+          "duration": 50
+        },
+        {
+          "filename": "link_attack_left_frame_002.png",
+          "frame_number": 2,
+          "duration": 250
+        }
+      ]
+    }
+  },
+  "total_gifs_processed": 6,
+  "total_frames_extracted": 15
+}

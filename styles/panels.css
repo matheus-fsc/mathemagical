@@ -1,0 +1,41 @@
+/* Info panels estilo vintage */
+.info-panel {
+    background: rgba(45, 80, 22, 0.9);
+    border: 2px solid #8fbc8f;
+    margin: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(143, 188, 143, 0.3);
+}
+
+.info-panel h3 {
+    color: #90ee90;
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+    text-align: center;
+}
+
+.info-panel p {
+    text-align: justify;
+    margin-bottom: 10px;
+}
+
+/* Controls info */
+.controls-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.control-item {
+    background: rgba(0,0,0,0.3);
+    padding: 10px;
+    border-radius: 5px;
+    border-left: 3px solid #90ee90;
+}
+
+.control-key {
+    font-weight: bold;
+    color: #FFD700;
+}
