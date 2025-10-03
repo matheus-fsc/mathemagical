@@ -670,8 +670,26 @@
             // Verificar colisão entre retângulos (player vs área de interação)
             isPlayerColliding(player, area) {
                 // Obter dimensões reais do player baseado na animação atual
-                const playerWidth = player.width || 32;  // valor padrão se não definido
-                const playerHeight = player.height || 32; // valor padrão se não definido
+                let playerWidth = player.width || 32;  // valor padrão se não definido
+                let playerHeight = player.height || 32; // valor padrão se não definido
+                
+                // Tentar obter dimensões do sprite atual se disponível
+                if (player.currentSprite && player.currentSprite.width && player.currentSprite.height) {
+                    playerWidth = player.currentSprite.width;
+                    playerHeight = player.currentSprite.height;
+                } else if (player.spriteManager && player.spriteManager.currentSprite) {
+                    // Verificar se há informações no sprite manager
+                    const currentSprite = player.spriteManager.currentSprite;
+                    if (currentSprite.width && currentSprite.height) {
+                        playerWidth = currentSprite.width;
+                        playerHeight = currentSprite.height;
+                    }
+                }
+                
+                // Log das dimensões para debug
+                if (playerWidth !== 32 || playerHeight !== 32) {
+                    console.log(`🎮 Usando dimensões do sprite: ${playerWidth}x${playerHeight}`);
+                }
                 
                 // Detecção de colisão AABB (Axis-Aligned Bounding Box)
                 return player.x < area.x + area.width &&
@@ -850,13 +868,9 @@
                 point.checkCounter = (point.checkCounter || 0) + 1;
                 if (point.checkCounter % 5 !== 0) return;
 
-                const playerPos = {
-                    x: player.x,
-                    y: player.y
-                };
-
                 const wasPlayerInside = point.playerInside || false;
-                const isPlayerInside = this.isPointInside(playerPos, point);
+                // NOVA: Usar detecção de colisão entre retângulos ao invés de apenas um ponto
+                const isPlayerInside = this.isPlayerColliding(player, point);
 
                 // Personagem entrou na área de interação
                 if (isPlayerInside && !wasPlayerInside) {
@@ -865,7 +879,7 @@
                     // Verificar se o áudio já foi tocado nesta sessão na área
                     if (!point.audioPlayed) {
                         point.audioPlayed = true; // Marcar como tocado
-                        console.log(`🚪 Personagem entrou na área de teleporte! Pos: (${playerPos.x.toFixed(1)}, ${playerPos.y.toFixed(1)})`);
+                        console.log(`🚪 Personagem colidiu com área de teleporte! Player: (${player.x.toFixed(1)}, ${player.y.toFixed(1)}) Dimensões: ${player.width || 32}x${player.height || 32}`);
                         
                         // Reproduzir áudio imediatamente (sem delay)
                         this.playAudioImmediate('songs/tp_song.mp3');
@@ -914,13 +928,9 @@
                     return;
                 }
 
-                const playerPos = {
-                    x: player.x,
-                    y: player.y
-                };
-
                 const wasPlayerInside = point.playerInside || false;
-                const isPlayerInside = this.isPointInside(playerPos, point);
+                // NOVA: Usar detecção de colisão entre retângulos ao invés de apenas um ponto
+                const isPlayerInside = this.isPlayerColliding(player, point);
 
                 // Personagem entrou na área de interação
                 if (isPlayerInside && !wasPlayerInside) {
@@ -929,7 +939,7 @@
                     // Verificar se o áudio já foi tocado nesta sessão na área
                     if (!point.audioPlayed) {
                         point.audioPlayed = true; // Marcar como tocado
-                        console.log(`🚪 Personagem entrou na área de teleporte! Pos: (${playerPos.x.toFixed(1)}, ${playerPos.y.toFixed(1)})`);
+                        console.log(`🚪 Personagem colidiu com área de teleporte! Player: (${player.x.toFixed(1)}, ${player.y.toFixed(1)}) Dimensões: ${player.width || 32}x${player.height || 32}`);
                         
                         // Reproduzir áudio automaticamente (apenas uma vez)
                         if (window.audioManager) {
