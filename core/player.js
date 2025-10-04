@@ -17,6 +17,9 @@ class Player {
         this.isMoving = false;
         this.lastDirection = 'front';
         
+        // Estado de controle
+        this.frozen = false; // Quando true, o player não pode se mover
+        
         // Sistema de ataque
         this.isAttacking = false;
         this.attackDuration = 500; // duração do ataque em ms
@@ -54,26 +57,21 @@ class Player {
     get height() { return this.baseHeight; }
 
     update(deltaTime, inputManager, joystickData = null) {
+        // Se o player estiver frozen (durante teleporte), não processar movimento
+        if (this.frozen) {
+            this.velocityX = 0;
+            this.velocityY = 0;
+            this.isMoving = false;
+            // Ainda atualizar timers de ataque para manter consistência
+            this.updateAttackTimers(deltaTime);
+            return;
+        }
+        
         // Converte deltaTime de milissegundos para segundos
         const dt = deltaTime / 1000;
         
         // Atualiza timers de ataque
-        if (this.isAttacking) {
-            this.attackTimer += deltaTime;
-            if (this.attackTimer >= this.attackDuration) {
-                this.isAttacking = false;
-                this.attackTimer = 0;
-                this.attackCooldownTimer = this.attackCooldown;
-            }
-        }
-        
-        // Atualiza cooldown de ataque
-        if (this.attackCooldownTimer > 0) {
-            this.attackCooldownTimer -= deltaTime;
-            if (this.attackCooldownTimer <= 0) {
-                this.canAttack = true;
-            }
-        }
+        this.updateAttackTimers(deltaTime);
         
         // Verifica input de ataque (prioridade sobre movimento)
         if (inputManager.isPressed('attack') && this.canAttack && !this.isAttacking) {
@@ -394,5 +392,39 @@ class Player {
             }
         }
         return 'linkWalkFront';
+    }
+
+    // Método auxiliar para atualizar timers de ataque
+    updateAttackTimers(deltaTime) {
+        if (this.isAttacking) {
+            this.attackTimer += deltaTime;
+            if (this.attackTimer >= this.attackDuration) {
+                this.isAttacking = false;
+                this.attackTimer = 0;
+                this.attackCooldownTimer = this.attackCooldown;
+            }
+        }
+        
+        // Atualiza cooldown de ataque
+        if (this.attackCooldownTimer > 0) {
+            this.attackCooldownTimer -= deltaTime;
+            if (this.attackCooldownTimer <= 0) {
+                this.canAttack = true;
+            }
+        }
+    }
+
+    // Método para congelar/descongelar o player
+    freeze() {
+        this.frozen = true;
+        this.velocityX = 0;
+        this.velocityY = 0;
+        this.isMoving = false;
+        console.log('❄️ Player frozen for teleportation');
+    }
+
+    unfreeze() {
+        this.frozen = false;
+        console.log('🔥 Player unfrozen');
     }
 }

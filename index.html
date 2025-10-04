@@ -1623,8 +1623,19 @@
                         point.audioPlayed = true; // Marcar como tocado
                         console.log(`🚪 Personagem colidiu com área de teleporte! Player: (${player.x.toFixed(1)}, ${player.y.toFixed(1)}) Dimensões: ${player.width || 32}x${player.height || 32}`);
                         
-                        // Reproduzir áudio e redirecionar (redirecionamento está na função playAudioImmediate)
+                        // FREEZE o player imediatamente para animação de teleporte
+                        if (player.freeze) {
+                            player.freeze();
+                        }
+                        
+                        // Reproduzir áudio de teleporte
                         this.playAudioImmediate('songs/tp_song.mp3');
+                        
+                        // Redirecionar após o áudio terminar (3.89s + margem = 4s)
+                        setTimeout(() => {
+                            console.log('🗡️ Portal Ativado! Redirecionando para o blog...');
+                            window.location.href = 'pages/blog.html';
+                        }, 4000); // 4 segundos para garantir que o áudio termine
                     } else {
                         console.log('🔇 Áudio já foi tocado nesta entrada na área');
                     }
@@ -1634,7 +1645,13 @@
                 if (!isPlayerInside && wasPlayerInside) {
                     point.playerInside = false;
                     point.audioPlayed = false; // Reset do estado do áudio ao sair
-                    console.log('🚶 Personagem saiu da área de teleporte - áudio resetado');
+                    
+                    // Descongelar o player se ele saiu da área
+                    if (player.unfreeze) {
+                        player.unfreeze();
+                    }
+                    
+                    console.log('🚶 Personagem saiu da área de teleporte - áudio resetado e player desfrozen');
                 }
             }
 
@@ -1653,13 +1670,9 @@
                         
                         console.log('🎵 Comando de reprodução enviado');
                         
-                        // REDIRECIONAMENTO: Se for o som de teleporte, redirecionar após delay
-                        if (audioPath === 'songs/tp_song.mp3') {
-                            setTimeout(() => {
-                                console.log('🗡️ Portal Ativado! Redirecionando para o blog...');
-                                window.location.href = 'pages/blog.html';
-                            }, 1000); // 1000ms delay para garantir que o áudio toque
-                        }
+                        // Nota: Redirecionamento agora é controlado pela interação específica
+                        // para permitir timing preciso com o freeze do player
+                        
                     } else {
                         console.error('❌ AudioManager não disponível');
                     }
