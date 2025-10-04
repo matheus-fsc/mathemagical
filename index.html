@@ -32,18 +32,26 @@
         
         #gameCanvas {
             display: block;
+            width: 800px;  /* Tamanho fixo para todos os dispositivos */
+            height: 600px; /* Tamanho fixo para todos os dispositivos */
             background: #000;
             border: 2px solid #333;
             image-rendering: pixelated; /* Para manter sprites nítidos */
-            /* Dimensões responsivas - será definido via JavaScript */
         }
         
-        /* Responsivo para telas pequenas */
+        /* Responsivo para centralizar em telas pequenas */
         @media (max-width: 800px), (max-height: 600px) {
+            body {
+                padding: 0;
+                margin: 0;
+                overflow: hidden; /* Evitar scroll */
+            }
+            
             #gameCanvas {
-                width: 100vw !important;
-                height: 100vh !important;
-                border: none;
+                /* Manter tamanho fixo mas centralizar */
+                display: block;
+                margin: 0 auto;
+                border: 1px solid #333; /* Borda menor para mobile */
             }
         }
         
@@ -463,12 +471,12 @@
             width: 120px;
             height: 120px;
             border-radius: 50%;
-            background: rgba(0, 0, 0, 0.3);
-            border: 3px solid rgba(255, 255, 255, 0.4);
+            background: rgba(27, 86, 128, 0.4);
+            border: 3px solid rgb(17, 76, 122);
             position: relative;
             box-shadow: 
-                0 0 20px rgba(0, 0, 0, 0.5),
-                inset 0 0 20px rgba(255, 255, 255, 0.1);
+                0 0 20px rgba(8, 34, 76, 0.6),
+                inset 0 0 20px rgba(26, 66, 107, 0.3);
             backdrop-filter: blur(5px);
             transition: all 0.2s ease;
             
@@ -481,32 +489,30 @@
                 width: 8px;
                 height: 8px;
                 border-radius: 50%;
-                background: rgba(255, 255, 255, 0.3);
+                background: rgba(26, 66, 107, 0.6);
                 transform: translate(-50%, -50%);
             }
         }
         
         .joystick-base:active {
             transform: scale(1.05);
-            border-color: rgba(255, 215, 0, 0.6);
+            border-color: rgb(26, 66, 107);
             box-shadow: 
-                0 0 30px rgba(255, 215, 0, 0.3),
-                inset 0 0 20px rgba(255, 255, 255, 0.2);
+                0 0 30px rgba(27, 86, 128, 0.5),
+                inset 0 0 20px rgba(26, 66, 107, 0.4);
         }
         
         .joystick-knob {
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #FFD700, #FFA500);
-            border: 2px solid rgba(255, 255, 255, 0.8);
+            background: radial-gradient(circle at 30% 30%, #1b5680, #0B2B57);
+            border: 2px solid rgb(17, 76, 122);
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            box-shadow: 
-                0 4px 15px rgba(0, 0, 0, 0.4),
-                inset 0 2px 5px rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgb(8, 34, 76), inset 0 2px 5px rgb(26, 66, 107);
             transition: all 0.1s ease;
             cursor: pointer;
             
@@ -525,7 +531,7 @@
         }
         
         .joystick-knob:active {
-            background: radial-gradient(circle at 30% 30%, #FFA500, #FF8C00);
+            background: radial-gradient(circle at 30% 30%, #26608B, #1b5680);
             transform: translate(-50%, -50%) scale(1.1);
         }
         
@@ -1015,8 +1021,17 @@
         
         // Aplicar configurações carregadas
         function applyGameConfig() {
+            // Verificar se já foi aplicado para evitar loop infinito
+            if (window.configAlreadyApplied) {
+                console.log('⚠️ Configurações já aplicadas, evitando loop');
+                return;
+            }
+            
             console.log('🚀 Aplicando configurações do jogo:', gameConfig);
             console.log('🔊 Verificando áudio - audioEnabled:', gameConfig.audioEnabled, typeof gameConfig.audioEnabled);
+            
+            // Marcar como aplicado
+            window.configAlreadyApplied = true;
             
             // Configurar áudio se habilitado
             if (gameConfig.audioEnabled === true) {
@@ -1186,10 +1201,19 @@
         // Inicializar jogo
         async function initGame() {
             try {
+                // Verificar se já foi inicializado
+                if (window.gameInitialized) {
+                    console.log('⚠️ Jogo já inicializado, evitando duplicação');
+                    return;
+                }
+                
                 // Verificar se deve redirecionar para configuração
                 if (!checkConfigRedirect()) {
                     return; // Página será redirecionada
                 }
+                
+                // Marcar como inicializado
+                window.gameInitialized = true;
                 
                 // Configurar canvas com tamanho fixo
                 setupFixedCanvas();
@@ -1197,7 +1221,7 @@
                 gameClient = new GameClient();
                 await gameClient.init('gameCanvas');  // Inicializar gameClient primeiro
                 
-                // Aplicar configurações carregadas
+                // Aplicar configurações carregadas (APENAS UMA VEZ)
                 applyGameConfig();
                 
                 // Aplicar nome do jogador das configurações se disponível
@@ -1301,40 +1325,17 @@
         function setupFixedCanvas() {
             const canvas = document.getElementById('gameCanvas');
             
-            // Configurar dimensões do canvas de forma responsiva
-            let canvasWidth, canvasHeight;
+            // Configurar dimensões do canvas sempre fixas (800x600)
+            const FIXED_WIDTH = 800;
+            const FIXED_HEIGHT = 600;
             
-            // Verificar se é dispositivo pequeno/móvel
+            // Verificar se é dispositivo pequeno/móvel (para joystick e câmera)
             const isSmallScreen = window.innerWidth <= 800 || window.innerHeight <= 600;
             const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
-            if (isSmallScreen || isMobile) {
-                // Para dispositivos pequenos, usar toda a tela
-                canvasWidth = window.innerWidth;
-                canvasHeight = window.innerHeight;
-                
-                // Ajustar CSS para fullscreen
-                canvas.style.width = '100vw';
-                canvas.style.height = '100vh';
-                canvas.style.border = 'none';
-                
-                console.log(`Canvas configurado para mobile/pequeno: ${canvasWidth}x${canvasHeight}`);
-            } else {
-                // Para dispositivos grandes, usar tamanho fixo
-                canvasWidth = 800;
-                canvasHeight = 600;
-                
-                // Ajustar CSS para tamanho fixo
-                canvas.style.width = '800px';
-                canvas.style.height = '600px';
-                canvas.style.border = '2px solid #333';
-                
-                console.log(`Canvas configurado para desktop: ${canvasWidth}x${canvasHeight}`);
-            }
-            
-            // Definir dimensões do canvas
-            canvas.width = canvasWidth;
-            canvas.height = canvasHeight;
+            // Definir dimensões fixas do canvas
+            canvas.width = FIXED_WIDTH;
+            canvas.height = FIXED_HEIGHT;
             
             // Controlar visibilidade inicial do joystick virtual
             const virtualJoystick = document.getElementById('virtualJoystick');
@@ -1346,29 +1347,22 @@
                 }
             }
             
-            // Salvar dimensões como constantes globais para fácil acesso
-            window.GAME_WIDTH = canvasWidth;
-            window.GAME_HEIGHT = canvasHeight;
+            console.log(`Canvas configurado com tamanho fixo: ${canvas.width}x${canvas.height}`);
+            console.log(`Dispositivo móvel/pequeno: ${isSmallScreen || isMobile} (câmera e joystick ativos)`);
             
-            // Função para redimensionar canvas dinamicamente
-            function resizeCanvas() {
+            // Salvar dimensões como constantes globais para fácil acesso
+            window.GAME_WIDTH = FIXED_WIDTH;
+            window.GAME_HEIGHT = FIXED_HEIGHT;
+            
+            // Função para controlar joystick dinamicamente (canvas mantém tamanho fixo)
+            function updateJoystickVisibility() {
+                // Evitar execução excessiva
+                if (updateJoystickVisibility.isExecuting) return;
+                updateJoystickVisibility.isExecuting = true;
+                
                 const isSmallScreen = window.innerWidth <= 800 || window.innerHeight <= 600;
                 const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
                 const shouldShowJoystick = isSmallScreen || isMobile;
-                
-                if (shouldShowJoystick) {
-                    canvas.width = window.innerWidth;
-                    canvas.height = window.innerHeight;
-                    canvas.style.width = '100vw';
-                    canvas.style.height = '100vh';
-                    canvas.style.border = 'none';
-                } else {
-                    canvas.width = 800;
-                    canvas.height = 600;
-                    canvas.style.width = '800px';
-                    canvas.style.height = '600px';
-                    canvas.style.border = '2px solid #333';
-                }
                 
                 // Controlar visibilidade do joystick virtual
                 const virtualJoystick = document.getElementById('virtualJoystick');
@@ -1380,20 +1374,21 @@
                     }
                 }
                 
-                // Atualizar constantes globais
-                window.GAME_WIDTH = canvas.width;
-                window.GAME_HEIGHT = canvas.height;
-                
                 // Atualizar sistema de câmera se existe
                 if (window.gameClient && window.gameClient.camera) {
                     window.gameClient.camera.enabled = window.gameClient.shouldEnableCamera();
                 }
+                
+                // Liberar flag após timeout
+                setTimeout(() => {
+                    updateJoystickVisibility.isExecuting = false;
+                }, 100);
             }
             
-            // Listener para redimensionamento
-            window.addEventListener('resize', resizeCanvas);
+            // Listener para controlar joystick em mudanças de orientação/tamanho
+            window.addEventListener('resize', updateJoystickVisibility);
             window.addEventListener('orientationchange', () => {
-                setTimeout(resizeCanvas, 100); // Delay para orientação estabilizar
+                setTimeout(updateJoystickVisibility, 100); // Delay para orientação estabilizar
             });
         }
                 
