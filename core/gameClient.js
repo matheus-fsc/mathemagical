@@ -330,6 +330,10 @@ class GameClient {
                 nickname: nickname || this.gameState.nickname
             };
 
+            console.log('🔍 Conectando com playerData:', playerData);
+            console.log('🔍 gameState.nickname atual:', this.gameState.nickname);
+            console.log('🔍 nickname parameter:', nickname);
+
             await this.networkManager.connect(playerData);
             
         } catch (error) {
