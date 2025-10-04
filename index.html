@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: ws: wss: https: 'unsafe-inline'; connect-src 'self' ws: wss: https: data: blob:;">
+2    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: ws: wss: https: 'unsafe-inline'; connect-src 'self' ws: wss: https: data: blob:;">
     <title>🗡️ Link's Adventure Blog | A Legendary Journey</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -52,62 +52,326 @@
             display: none;
         }
         
-        /* Audio Permission Modal */
-        .audio-permission-modal {
+        /* Game Configuration Modal - Y2K Sci-Fi Style */
+        .game-config-modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: 
+                radial-gradient(circle at 20% 50%, #001122 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, #001a33 0%, transparent 50%),
+                linear-gradient(45deg, #000011, #001122, #000033);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 10000;
             font-family: 'Courier New', monospace;
+            overflow: hidden;
         }
         
-        .audio-permission-content {
-            background: linear-gradient(135deg, #2c3e50, #3498db);
-            color: #fff;
-            padding: 30px;
-            border-radius: 15px;
+        .game-config-modal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 255, 255, 0.03) 2px,
+                    rgba(0, 255, 255, 0.03) 4px
+                );
+            animation: scanlines 2s linear infinite;
+            pointer-events: none;
+        }
+        
+        .game-config-modal::after {
+            content: '01001001 01001110 01001001 01010100 00100000 01000001 01010010 01000101 01000001 00100000 01000001 01000011 01000011 01000101 01010011 01010011';
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: rgba(0, 255, 0, 0.3);
+            font-size: 10px;
+            font-family: 'Courier New', monospace;
+            animation: matrixRain 10s linear infinite;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        
+        @keyframes scanlines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(4px); }
+        }
+        
+        @keyframes neonGlow {
+            0%, 100% { text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 15px #00ffff; }
+            50% { text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff; }
+        }
+        
+        @keyframes borderGlow {
+            0%, 100% { 
+                border-color: #00ffff;
+                box-shadow: 
+                    0 0 10px #00ffff,
+                    inset 0 0 10px rgba(0, 255, 255, 0.1);
+            }
+            50% { 
+                border-color: #00ff00;
+                box-shadow: 
+                    0 0 20px #00ff00,
+                    inset 0 0 20px rgba(0, 255, 0, 0.1);
+            }
+        }
+        
+        @keyframes fadeOutMatrix {
+            0% { 
+                opacity: 1; 
+                transform: scale(1);
+            }
+            100% { 
+                opacity: 0; 
+                transform: scale(0.8);
+            }
+        }
+        
+        @keyframes matrixRain {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
+        
+        .game-config-content {
+            background: 
+                linear-gradient(135deg, rgba(0, 20, 40, 0.9), rgba(0, 10, 30, 0.9)),
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 1px,
+                    rgba(0, 255, 255, 0.1) 1px,
+                    rgba(0, 255, 255, 0.1) 2px
+                );
+            color: #00ffff;
+            padding: 40px;
+            border-radius: 0;
             text-align: center;
-            max-width: 400px;
-            border: 3px solid #FFD700;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            max-width: 500px;
+            width: 90%;
+            border: 2px solid #00ffff;
+            position: relative;
+            animation: borderGlow 3s ease-in-out infinite;
+            clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
         }
         
-        .audio-permission-title {
-            font-size: 24px;
-            color: #FFD700;
-            margin-bottom: 15px;
+        .game-config-content::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #00ffff, #00ff00, #ffff00, #ff00ff);
+            z-index: -1;
+            clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+            opacity: 0.3;
         }
         
-        .audio-permission-text {
+        .game-config-title {
+            font-size: 32px;
+            color: #00ffff;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            animation: neonGlow 2s ease-in-out infinite;
+            position: relative;
+        }
+        
+        .game-config-title::after {
+            content: '◊◊◊◊◊◊◊◊◊◊◊◊◊◊◊';
+            display: block;
+            font-size: 12px;
+            color: #00ff00;
+            margin-top: 10px;
+            letter-spacing: 2px;
+        }
+        
+        .config-section {
+            margin: 25px 0;
+            text-align: left;
+            background: rgba(0, 50, 100, 0.2);
+            padding: 15px;
+            border-left: 3px solid #00ff00;
+            position: relative;
+        }
+        
+        .config-section::before {
+            content: '►';
+            position: absolute;
+            left: -15px;
+            top: 15px;
+            color: #00ff00;
             font-size: 16px;
-            line-height: 1.5;
-            margin-bottom: 25px;
-            color: #ecf0f1;
         }
         
-        .audio-permission-button {
-            background: #e74c3c;
-            color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 25px;
+        .config-label {
+            display: block;
             font-size: 16px;
+            color: #00ff00;
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .config-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #00ffff;
+            border-radius: 0;
+            background: rgba(0, 20, 40, 0.8);
+            color: #00ffff;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+        }
+        
+        .config-input:focus {
+            outline: none;
+            border-color: #00ff00;
+            box-shadow: 
+                0 0 10px #00ff00,
+                inset 0 0 10px rgba(0, 255, 0, 0.1);
+            background: rgba(0, 30, 60, 0.9);
+        }
+        
+        .config-input::placeholder {
+            color: rgba(0, 255, 255, 0.5);
+            font-style: italic;
+        }
+        
+        /* Y2K Toggle Switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 15px 0;
+            background: rgba(0, 30, 60, 0.3);
+            padding: 10px;
+            border: 1px solid #00ffff;
+        }
+        
+        .toggle-label {
+            font-size: 16px;
+            color: #00ff00;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 80px;
+            height: 30px;
+            appearance: none;
+            background: linear-gradient(45deg, #001122, #002244);
+            border: 2px solid #00ffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+        }
+        
+        .toggle-switch:checked {
+            background: linear-gradient(45deg, #002200, #004400);
+            border-color: #00ff00;
+            box-shadow: 0 0 15px #00ff00;
+        }
+        
+        .toggle-switch::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 22px;
+            height: 22px;
+            background: linear-gradient(45deg, #00ffff, #0088ff);
+            transition: all 0.3s ease;
+            clip-path: polygon(0 0, calc(100% - 3px) 0, 100% 3px, 100% 100%, 3px 100%, 0 calc(100% - 3px));
+        }
+        
+        .toggle-switch:checked::before {
+            transform: translateX(48px);
+            background: linear-gradient(45deg, #00ff00, #88ff00);
+        }
+        
+        .toggle-status {
+            font-size: 14px;
+            color: #00ffff;
+            font-weight: bold;
+            min-width: 100px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .start-game-button {
+            background: linear-gradient(45deg, #001122, #003366, #001122);
+            color: #00ffff;
+            padding: 18px 40px;
+            border: 3px solid #00ffff;
+            font-size: 18px;
             font-family: 'Courier New', monospace;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+            margin-top: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: bold;
+            position: relative;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
         
-        .audio-permission-button:hover {
-            background: #c0392b;
+        .start-game-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.2), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .start-game-button:hover {
+            background: linear-gradient(45deg, #003366, #0066cc, #003366);
+            border-color: #00ff00;
+            box-shadow: 
+                0 0 20px #00ff00,
+                inset 0 0 20px rgba(0, 255, 0, 0.1);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+            text-shadow: 0 0 10px #00ffff;
+        }
+        
+        .start-game-button:hover::before {
+            opacity: 1;
+        }
+        
+        .config-description {
+            font-size: 14px;
+            color: #00ff00;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            text-align: center;
+            font-style: italic;
+            padding: 10px;
+            border: 1px dashed #00ffff;
+            background: rgba(0, 255, 255, 0.05);
         }
         
         /* ===== VIRTUAL JOYSTICK STYLES ===== */
@@ -257,17 +521,48 @@
         </div>
     </div>
     
-    <!-- Audio Permission Modal -->
-    <div class="audio-permission-modal" id="audioPermissionModal">
-        <div class="audio-permission-content">
-            <div class="audio-permission-title">🎵 Aventura Sonora</div>
-            <div class="audio-permission-text">
-                Para uma experiência completa, este jogo usa efeitos sonoros e música de fundo. 
-                <br><br>
-                <strong>Clique para permitir áudio e começar sua aventura!</strong>
+    <!-- Game Configuration Modal -->
+    <div class="game-config-modal" id="gameConfigModal">
+        <div class="game-config-content">
+            <div class="game-config-title">NEURAL LINK INTERFACE</div>
+            
+            <div class="config-description">
+                ░░░ INITIALIZING QUANTUM MATRIX ░░░<br>
+                Configure neural pathways before entering the digital realm...
             </div>
-            <button class="audio-permission-button" onclick="enableAudio()">
-                🗡️ Iniciar Aventura com Som
+            
+            <div class="config-section">
+                <label class="config-label" for="playerNameInput">
+                    ◄ CODENAME_IDENTIFIER ►
+                </label>
+                <input 
+                    type="text" 
+                    id="playerNameInput" 
+                    class="config-input"
+                    placeholder="[ANONYMOUS_USER.exe]"
+                    maxlength="20"
+                >
+            </div>
+            
+            <div class="config-section">
+                <div class="toggle-container">
+                    <label class="toggle-label">
+                        ◄ AUDIO_SYSTEM.dll ►
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <input 
+                            type="checkbox" 
+                            id="audioToggle" 
+                            class="toggle-switch"
+                            checked
+                        >
+                        <span class="toggle-status" id="audioStatus">ONLINE</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="start-game-button" onclick="startGameWithConfig()">
+                ◄ EXECUTE PROGRAM.exe ►
             </button>
         </div>
     </div>
@@ -561,18 +856,65 @@
             }
         }
         
-        // Função para habilitar áudio após interação do usuário
-        function enableAudio() {
-            console.log('🎵 Usuário solicitou habilitação de áudio');
-            audioEnabled = true;
+        // ===== SISTEMA DE CONFIGURAÇÃO DO JOGO =====
+        let gameConfig = {
+            playerName: '',
+            audioEnabled: true // Padrão habilitado
+        };
+        
+        // Atualizar toggle do áudio
+        function updateAudioToggle() {
+            const toggle = document.getElementById('audioToggle');
+            const status = document.getElementById('audioStatus');
             
-            // Esconder modal
-            const modal = document.getElementById('audioPermissionModal');
-            if (modal) {
+            if (toggle.checked) {
+                status.textContent = 'ONLINE';
+                status.style.color = '#00ff00';
+            } else {
+                status.textContent = 'OFFLINE';
+                status.style.color = '#ff0000';
+            }
+        }
+        
+        // Função principal para iniciar o jogo com configurações
+        function startGameWithConfig() {
+            const playerNameInput = document.getElementById('playerNameInput');
+            const audioToggle = document.getElementById('audioToggle');
+            const modal = document.getElementById('gameConfigModal');
+            
+            // Capturar configurações
+            gameConfig.playerName = playerNameInput.value.trim() || 'Anonymous_User';
+            gameConfig.audioEnabled = audioToggle.checked;
+            
+            console.log('⚙️ Neural matrix configuration:', gameConfig);
+            
+            // Configurar áudio se habilitado
+            if (gameConfig.audioEnabled) {
+                enableAudio();
+            } else {
+            console.log('🔇 Áudio desabilitado pelo usuário');
+            audioEnabled = false;
+        }
+        
+        // Esconder modal com efeito
+        if (modal) {
+            modal.style.animation = 'fadeOutMatrix 0.5s ease-out forwards';
+            setTimeout(() => {
                 modal.style.display = 'none';
+            }, 500);
+        }            // Aplicar nome do jogador se o gameClient já existir
+            if (gameClient) {
+                gameClient.gameState.nickname = gameConfig.playerName;
+                console.log(`👤 Nome do jogador definido: ${gameConfig.playerName}`);
             }
             
+            console.log('🚀 Jogo iniciado com configurações personalizadas!');
+        }
+        
+        // Função para habilitar áudio (chamada internamente)
+        function enableAudio() {
             console.log('🎵 Habilitando sistema de áudio...');
+            audioEnabled = true;
             
             // Tocar um som silencioso para desbloquear o contexto de áudio
             const testAudio = new Audio();
@@ -609,6 +951,12 @@
                 
                 gameClient = new GameClient();
                 await gameClient.init('gameCanvas');  // Inicializar gameClient primeiro
+                
+                // Aplicar nome do jogador das configurações
+                if (gameConfig.playerName) {
+                    gameClient.gameState.nickname = gameConfig.playerName;
+                    console.log(`👤 Nome do jogador aplicado: ${gameConfig.playerName}`);
+                }
                 
                 // Inicializar sistema de componentes
                 window.gameCore = new GameCore();
@@ -1270,8 +1618,34 @@
             }
         });
 
+        // Inicializar sistema de configuração
+        function initConfigSystem() {
+            // Event listener para o toggle de áudio
+            const audioToggle = document.getElementById('audioToggle');
+            if (audioToggle) {
+                audioToggle.addEventListener('change', updateAudioToggle);
+                // Atualizar status inicial
+                updateAudioToggle();
+            }
+            
+            // Event listener para Enter no campo de nome
+            const playerNameInput = document.getElementById('playerNameInput');
+            if (playerNameInput) {
+                playerNameInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        startGameWithConfig();
+                    }
+                });
+            }
+            
+            console.log('⚙️ Sistema de configuração inicializado');
+        }
+
         // Inicializar quando a página carregar
-        window.addEventListener('load', initGame);
+        window.addEventListener('load', () => {
+            initConfigSystem();
+            initGame();
+        });
     </script>
 
 </body>
