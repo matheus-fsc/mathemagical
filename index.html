@@ -585,6 +585,24 @@
         </div>
     </div>
     
+    <!-- Audio Status Indicator -->
+    <div id="audioIndicator" style="
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        color: #00ffff;
+        padding: 10px 15px;
+        border-radius: 5px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        z-index: 2000;
+        border: 1px solid #00ffff;
+        display: none;
+    ">
+        🎵 Clique para ativar áudio
+    </div>
+    
     <!-- Debug Info (Hidden by default) -->
     <div class="debug-info" id="debugInfo">
         Debug Mode: ON
@@ -880,22 +898,53 @@
             audioEnabled: true // Padrão habilitado
         };
         
+        // Variável global para controlar se o áudio foi desbloqueado
+        window.audioUnlocked = false;
+        
         // Função para carregar configurações do localStorage vindas da página de config
         function loadGameConfig() {
+            console.log('🔍 Iniciando carregamento de configurações...');
+            console.log('🗂️ Verificando localStorage disponível:', typeof(Storage) !== "undefined");
+            
             try {
+                // Listar todas as chaves do localStorage para debug
+                console.log('🗃️ Chaves disponíveis no localStorage:', Object.keys(localStorage));
+                
                 const storedConfig = localStorage.getItem('gameConfig');
+                console.log('📥 localStorage gameConfig (raw):', storedConfig);
+                console.log('📥 Tipo do valor obtido:', typeof storedConfig);
+                
                 if (storedConfig) {
+                    console.log('✅ Configuração encontrada no localStorage');
+                    
                     const parsedConfig = JSON.parse(storedConfig);
+                    console.log('📋 Configuração parseada:', parsedConfig);
+                    console.log('🔊 audioEnabled na config:', parsedConfig.audioEnabled, typeof parsedConfig.audioEnabled);
+                    console.log('👤 playerName na config:', parsedConfig.playerName, typeof parsedConfig.playerName);
+                    
+                    // Backup das configurações antes de mesclar
+                    const configBackup = { ...gameConfig };
+                    console.log('💾 Backup das configurações padrão:', configBackup);
+                    
                     gameConfig = { ...gameConfig, ...parsedConfig };
-                    console.log('⚙️ Configurações carregadas:', gameConfig);
+                    console.log('⚙️ Configurações mescladas:', gameConfig);
+                    console.log('🔊 gameConfig.audioEnabled final:', gameConfig.audioEnabled, typeof gameConfig.audioEnabled);
                     
                     // Limpar localStorage após carregar
                     localStorage.removeItem('gameConfig');
+                    console.log('🗑️ localStorage limpo após carregamento');
+                    
+                    // Verificar se foi realmente removido
+                    const verificacaoRemocao = localStorage.getItem('gameConfig');
+                    console.log('🔍 Verificação pós-remoção:', verificacaoRemocao);
                     
                     return true;
+                } else {
+                    console.log('⚠️ Nenhuma configuração encontrada no localStorage');
                 }
             } catch (error) {
                 console.error('❌ Erro ao carregar configurações:', error);
+                console.error('❌ Stack trace:', error.stack);
             }
             
             console.log('⚙️ Usando configurações padrão');
@@ -917,12 +966,15 @@
         // Aplicar configurações carregadas
         function applyGameConfig() {
             console.log('🚀 Aplicando configurações do jogo:', gameConfig);
+            console.log('🔊 Verificando áudio - audioEnabled:', gameConfig.audioEnabled, typeof gameConfig.audioEnabled);
             
             // Configurar áudio se habilitado
-            if (gameConfig.audioEnabled) {
+            if (gameConfig.audioEnabled === true) {
+                console.log('✅ Áudio HABILITADO - chamando enableAudio()');
                 enableAudio();
             } else {
-                console.log('🔇 Áudio desabilitado pelo usuário');
+                console.log('🔇 Áudio DESABILITADO pelo usuário');
+                console.log('🔇 Motivo - gameConfig.audioEnabled =', gameConfig.audioEnabled);
                 audioEnabled = false;
             }
             
@@ -947,28 +999,135 @@
             console.log('🎵 Habilitando sistema de áudio...');
             audioEnabled = true;
             
-            // Tocar um som silencioso para desbloquear o contexto de áudio
-            const testAudio = new Audio();
-            testAudio.volume = 0;
-            testAudio.play().then(() => {
-                console.log('✅ Contexto de áudio desbloqueado');
+            // Mostrar indicador de áudio
+            const audioIndicator = document.getElementById('audioIndicator');
+            if (audioIndicator) {
+                audioIndicator.style.display = 'block';
+            }
+            
+            // Criar função para desbloquear áudio na primeira interação
+            const unlockAudio = () => {
+                console.log('🎵 Primeira interação detectada - desbloqueando áudio...');
                 
-                // Pré-carregar áudios críticos
-                window.audioManager.preloadAudio('songs/backgroundsond.mp3');
-                window.audioManager.preloadAudio('songs/tp_song.mp3');
-                
-                // Iniciar música de fundo
-                console.log('🎵 Iniciando música de fundo...');
-                window.audioManager.startBackgroundMusic();
-                
-                // Inicializar áudio da área atual se disponível
-                if (gameClient && gameClient.areaManager) {
-                    console.log('🎵 Inicializando áudio da área...');
-                    gameClient.areaManager.initializeAreaAudio();
+                // Esconder indicador
+                if (audioIndicator) {
+                    audioIndicator.style.display = 'none';
+                    console.log('👁️ Indicador de áudio escondido');
                 }
-            }).catch(e => {
-                console.log('⚠️ Ainda não foi possível desbloquear o áudio:', e);
-            });
+                
+                // Tocar um som silencioso para desbloquear o contexto de áudio
+                console.log('🔇 Criando áudio de teste silencioso...');
+                const testAudio = new Audio('songs/backgroundsond.mp3');
+                testAudio.volume = 0.01; // Volume muito baixo ao invés de 0
+                testAudio.currentTime = 0;
+                
+                console.log('▶️ Tentando reproduzir áudio de teste...');
+                testAudio.play().then(() => {
+                    console.log('✅ Contexto de áudio desbloqueado com sucesso!');
+                    
+                    // Marcar áudio como desbloqueado globalmente
+                    window.audioUnlocked = true;
+                    audioEnabled = true; // ← Crucial: ativar o audioEnabled também!
+                    console.log('🔓 Áudio globalmente desbloqueado - window.audioUnlocked =', window.audioUnlocked);
+                    console.log('🔊 audioEnabled definido como:', audioEnabled);
+                    
+                    // Verificar se audioManager está disponível
+                    console.log('🔍 Verificando disponibilidade do audioManager...');
+                    if (window.audioManager) {
+                        console.log('🎵 AudioManager encontrado - iniciando áudio...');
+                        
+                        try {
+                            // Pré-carregar áudios críticos
+                            console.log('📦 Pré-carregando áudios...');
+                            window.audioManager.preloadAudio('songs/backgroundsond.mp3');
+                            window.audioManager.preloadAudio('songs/tp_song.mp3');
+                            
+                            // Iniciar música de fundo
+                            console.log('🎵 Iniciando música de fundo via AudioManager...');
+                            window.audioManager.startBackgroundMusic();
+                            
+                            // Inicializar áudio da área atual se disponível
+                            if (gameClient && gameClient.areaManager) {
+                                console.log('🎵 Inicializando áudio da área atual via AreaManager...');
+                                gameClient.areaManager.initializeAreaAudio();
+                            }
+                        } catch (error) {
+                            console.error('❌ Erro ao usar AudioManager:', error);
+                        }
+                    } else {
+                        console.log('⚠️ AudioManager não encontrado - aguardando carregamento...');
+                        
+                        // Aguardar um pouco e tentar novamente
+                        setTimeout(() => {
+                            if (window.audioManager) {
+                                console.log('🎵 AudioManager carregado após timeout - iniciando áudio...');
+                                window.audioManager.preloadAudio('songs/backgroundsond.mp3');
+                                window.audioManager.preloadAudio('songs/tp_song.mp3');
+                                window.audioManager.startBackgroundMusic();
+                                
+                                if (gameClient && gameClient.areaManager) {
+                                    gameClient.areaManager.initializeAreaAudio();
+                                }
+                            } else {
+                                console.log('⚠️ AudioManager ainda não encontrado - tentando método alternativo...');
+                                
+                                // Método alternativo: criar e tocar áudio diretamente
+                                const backgroundMusic = new Audio('songs/backgroundsond.mp3');
+                                backgroundMusic.loop = true;
+                                backgroundMusic.volume = 0.5;
+                                
+                                backgroundMusic.play().then(() => {
+                                    console.log('✅ Música de fundo iniciada com método alternativo!');
+                                }).catch(error => {
+                                    console.log('❌ Erro ao tocar música de fundo:', error);
+                                });
+                            }
+                        }, 1000);
+                    }
+                    
+                    // Também tentar inicializar música da área atual se AreaManager já existe
+                    if (gameClient && gameClient.areaManager) {
+                        console.log('🎵 Tentando inicializar música da área após desbloqueio...');
+                        gameClient.areaManager.initializeAreaAudio();
+                    }
+                    
+                    // Remover listeners após desbloqueio
+                    document.removeEventListener('click', unlockAudio);
+                    document.removeEventListener('keydown', unlockAudio);
+                    document.removeEventListener('touchstart', unlockAudio);
+                    
+                }).catch(e => {
+                    console.error('❌ Erro ao desbloquear áudio:', e);
+                    console.log('🔄 Tentando método alternativo de desbloqueio...');
+                    
+                    // Método alternativo: definir flags mesmo com erro
+                    window.audioUnlocked = true;
+                    audioEnabled = true;
+                    console.log('⚡ Flags de áudio definidas mesmo com erro');
+                    
+                    // Esconder indicador
+                    if (audioIndicator) {
+                        audioIndicator.style.display = 'none';
+                    }
+                    
+                    // Tentar inicializar AudioManager mesmo assim
+                    if (window.audioManager) {
+                        console.log('🎵 Tentando AudioManager mesmo com erro...');
+                        try {
+                            window.audioManager.startBackgroundMusic();
+                        } catch (audioError) {
+                            console.error('❌ Erro no AudioManager:', audioError);
+                        }
+                    }
+                });
+            };
+            
+            // Aguardar primeira interação do usuário para desbloquear áudio
+            document.addEventListener('click', unlockAudio, { once: true });
+            document.addEventListener('keydown', unlockAudio, { once: true });
+            document.addEventListener('touchstart', unlockAudio, { once: true });
+            
+            console.log('🎵 Sistema de áudio configurado - aguardando interação do usuário...');
         }
         
         // Inicialização do jogo

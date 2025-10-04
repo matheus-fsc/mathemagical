@@ -122,7 +122,13 @@ class AreaManager {
         const newAreaData = this.areas[newArea];
         const oldAreaData = this.areas[oldArea];
         
-        if (!newAreaData || !window.audioManager) return;
+        // Verificar se áudio está habilitado E desbloqueado
+        if (!newAreaData || !window.audioManager || !window.audioUnlocked) {
+            if (!window.audioUnlocked) {
+                console.log('🎵 Áudio ainda não foi desbloqueado - aguardando interação do usuário');
+            }
+            return;
+        }
 
         // Se a nova área tem música de fundo configurada
         if (newAreaData.backgroundMusic) {
@@ -302,12 +308,16 @@ class AreaManager {
     // Inicializar música da área atual
     initializeAreaAudio() {
         const currentAreaData = this.areas[this.currentArea];
-        if (currentAreaData && currentAreaData.backgroundMusic && window.audioManager) {
+        
+        // Verificar se áudio está habilitado E desbloqueado
+        if (currentAreaData && currentAreaData.backgroundMusic && window.audioManager && window.audioUnlocked) {
             console.log(`🎵 Inicializando música da área inicial: ${this.currentArea}`);
             window.audioManager.startBackgroundMusic(
                 currentAreaData.backgroundMusic,
                 currentAreaData.musicVolume || 0.3
             );
+        } else if (currentAreaData && currentAreaData.backgroundMusic && !window.audioUnlocked) {
+            console.log(`🎵 Área ${this.currentArea} tem música configurada, mas áudio ainda não foi desbloqueado`);
         }
     }
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚀 Neural Link Configuration | Link's Adventure</title>
+    <title>Configurações - Link's Adventure</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     
     <style>
@@ -12,414 +12,308 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            font-family: 'Courier New', monospace;
-            background: 
-                radial-gradient(circle at 20% 50%, #001122 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, #001a33 0%, transparent 50%),
-                linear-gradient(45deg, #000011, #001122, #000033);
+            font-family: 'Tahoma', 'MS Sans Serif', sans-serif;
+            background: linear-gradient(to bottom, #0054e3, #2483d1);
+            color: #000;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            overflow: hidden;
-            color: #00ffff;
-        }
-        
-        /* Scanlines Effect */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                repeating-linear-gradient(
-                    0deg,
-                    transparent,
-                    transparent 2px,
-                    rgba(0, 255, 255, 0.03) 2px,
-                    rgba(0, 255, 255, 0.03) 4px
-                );
-            animation: scanlines 2s linear infinite;
-            pointer-events: none;
-            z-index: 1;
-        }
-        
-        /* Matrix Rain Effect */
-        body::after {
-            content: '01001001 01001110 01001001 01010100 00100000 01000001 01010010 01000101 01000001 00100000 01000001 01000011 01000011 01000101 01010011 01010011';
-            position: fixed;
-            top: -100px;
-            left: 10%;
-            color: rgba(0, 255, 0, 0.2);
-            font-size: 10px;
-            animation: matrixRain 15s linear infinite;
-            pointer-events: none;
-            white-space: nowrap;
-            z-index: 2;
-        }
-        
-        @keyframes scanlines {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(4px); }
-        }
-        
-        @keyframes matrixRain {
-            0% { transform: translateY(-100px); }
-            100% { transform: translateY(100vh); }
-        }
-        
-        @keyframes neonGlow {
-            0%, 100% { text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 15px #00ffff; }
-            50% { text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff; }
-        }
-        
-        @keyframes borderGlow {
-            0%, 100% { 
-                border-color: #00ffff;
-                box-shadow: 0 0 15px #00ffff, inset 0 0 15px rgba(0, 255, 255, 0.1);
-            }
-            50% { 
-                border-color: #00ff00;
-                box-shadow: 0 0 25px #00ff00, inset 0 0 25px rgba(0, 255, 0, 0.1);
-            }
-        }
-        
-        .config-container {
-            background: 
-                linear-gradient(135deg, rgba(0, 20, 40, 0.95), rgba(0, 10, 30, 0.95)),
-                repeating-linear-gradient(
-                    45deg,
-                    transparent,
-                    transparent 1px,
-                    rgba(0, 255, 255, 0.1) 1px,
-                    rgba(0, 255, 255, 0.1) 2px
-                );
-            border: 3px solid #00ffff;
-            padding: 40px;
-            max-width: 500px;
-            width: 90%;
+            justify-content: center;
             position: relative;
-            z-index: 10;
-            animation: borderGlow 3s ease-in-out infinite;
-            clip-path: polygon(0 0, calc(100% - 25px) 0, 100% 25px, 100% 100%, 25px 100%, 0 calc(100% - 25px));
         }
-        
-        .config-container::before {
-            content: '';
-            position: absolute;
-            top: -3px;
-            left: -3px;
-            right: -3px;
-            bottom: -3px;
-            background: linear-gradient(45deg, #00ffff, #00ff00, #ffff00, #ff00ff);
-            z-index: -1;
-            clip-path: polygon(0 0, calc(100% - 25px) 0, 100% 25px, 100% 100%, 25px 100%, 0 calc(100% - 25px));
-            opacity: 0.3;
+
+        /* Container principal estilo janela XP */
+        .config-container {
+            background: #ece9d8;
+            border: 3px outset #ece9d8;
+            border-radius: 0;
+            width: 90%;
+            max-width: 480px;
+            position: relative;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
         }
-        
+
+        /* Barra de título XP */
+        .title-bar {
+            background: linear-gradient(to bottom, #0997ff, #0053ee);
+            color: white;
+            padding: 5px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #0053ee;
+        }
+
+        .title-bar .window-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .title-bar .icon {
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border: 1px solid #000;
+            display: inline-block;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect width="16" height="16" fill="%23ff6600"/><text x="8" y="12" text-anchor="middle" fill="white" font-size="10px" font-weight="bold">⚙</text></svg>');
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 2px;
+        }
+
+        .window-btn {
+            width: 21px;
+            height: 21px;
+            background: linear-gradient(to bottom, #ece9d8, #d4d0c8);
+            border: 1px outset #ece9d8;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .window-btn:hover {
+            background: linear-gradient(to bottom, #f5f4f0, #e0ddd6);
+        }
+
+        .window-btn:active {
+            border: 1px inset #ece9d8;
+        }
+
+        /* Conteúdo da janela */
+        .window-content {
+            padding: 20px;
+            background: #ece9d8;
+        }
+
+        /* Título da configuração */
         .config-title {
             text-align: center;
-            font-size: 32px;
-            color: #00ffff;
-            margin-bottom: 20px;
+            font-size: 16px;
             font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            animation: neonGlow 2s ease-in-out infinite;
+            margin-bottom: 20px;
+            color: #000080;
         }
-        
-        .config-title::after {
-            content: '◊◊◊◊◊◊◊◊◊◊◊◊◊◊◊';
-            display: block;
-            font-size: 12px;
-            color: #00ff00;
-            margin-top: 10px;
-            letter-spacing: 2px;
-        }
-        
+
         .config-description {
             text-align: center;
-            font-size: 14px;
-            color: #00ff00;
-            margin-bottom: 30px;
-            line-height: 1.6;
-            font-style: italic;
-            padding: 15px;
-            border: 1px dashed #00ffff;
-            background: rgba(0, 255, 255, 0.05);
+            font-size: 11px;
+            color: #000;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f0f0f0;
+            border: 1px inset #ece9d8;
         }
-        
+
+        /* Grupos de configuração estilo XP */
         .config-section {
-            margin: 25px 0;
-            background: rgba(0, 50, 100, 0.2);
-            padding: 20px;
-            border-left: 4px solid #00ff00;
-            position: relative;
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 2px inset #ece9d8;
+            background: #f0f0f0;
         }
-        
-        .config-section::before {
-            content: '►';
-            position: absolute;
-            left: -20px;
-            top: 20px;
-            color: #00ff00;
-            font-size: 18px;
-        }
-        
+
         .config-label {
             display: block;
-            font-size: 16px;
-            color: #00ff00;
-            margin-bottom: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            margin-bottom: 5px;
+            color: #000;
+            font-size: 11px;
+            font-weight: normal;
         }
-        
+
+        /* Input de texto estilo XP */
         .config-input {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #00ffff;
-            border-radius: 0;
-            background: rgba(0, 20, 40, 0.9);
-            color: #00ffff;
-            font-family: 'Courier New', monospace;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
-        }
-        
-        .config-input:focus {
+            padding: 4px 6px;
+            background: white;
+            border: 2px inset #ece9d8;
+            color: #000;
+            font-family: 'Tahoma', 'MS Sans Serif', sans-serif;
+            font-size: 11px;
             outline: none;
-            border-color: #00ff00;
-            box-shadow: 0 0 15px #00ff00, inset 0 0 15px rgba(0, 255, 0, 0.1);
-            background: rgba(0, 30, 60, 0.95);
         }
-        
+
+        .config-input:focus {
+            background: #316ac5;
+            color: white;
+            border: 2px inset #316ac5;
+        }
+
         .config-input::placeholder {
-            color: rgba(0, 255, 255, 0.5);
+            color: #999;
             font-style: italic;
         }
-        
+
+        /* Toggle container estilo XP */
         .toggle-container {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: rgba(0, 30, 60, 0.4);
-            padding: 15px;
-            border: 1px solid #00ffff;
+            background: #f0f0f0;
+            padding: 10px;
+            border: 1px inset #ece9d8;
             margin-top: 10px;
         }
-        
+
         .toggle-label {
-            font-size: 16px;
-            color: #00ff00;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            color: #000;
+            font-size: 11px;
+            font-weight: normal;
         }
-        
+
+        /* Checkbox estilo XP */
         .toggle-switch {
+            width: 13px;
+            height: 13px;
+            background: white;
+            border: 2px inset #ece9d8;
+            cursor: pointer;
             position: relative;
-            width: 80px;
-            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             appearance: none;
-            background: linear-gradient(45deg, #001122, #002244);
-            border: 2px solid #00ffff;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
         }
-        
+
         .toggle-switch:checked {
-            background: linear-gradient(45deg, #002200, #004400);
-            border-color: #00ff00;
-            box-shadow: 0 0 20px #00ff00;
+            background: white;
+            border: 2px inset #ece9d8;
         }
-        
-        .toggle-switch::before {
-            content: '';
-            position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 25px;
-            height: 25px;
-            background: linear-gradient(45deg, #00ffff, #0088ff);
-            transition: all 0.3s ease;
-            clip-path: polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px));
+
+        .toggle-switch:checked::after {
+            content: '✓';
+            color: #000;
+            font-size: 10px;
+            font-weight: bold;
         }
-        
-        .toggle-switch:checked::before {
-            transform: translateX(42px);
-            background: linear-gradient(45deg, #00ff00, #88ff00);
-        }
-        
+
         .toggle-status {
-            font-size: 14px;
-            color: #00ffff;
-            font-weight: bold;
-            min-width: 100px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-align: center;
+            color: #000;
+            font-size: 11px;
+            font-weight: normal;
+            min-width: 60px;
         }
-        
+
+        /* Botão estilo XP */
         .start-button {
-            width: 100%;
-            background: linear-gradient(45deg, #001122, #003366, #001122);
-            color: #00ffff;
-            padding: 20px;
-            border: 3px solid #00ffff;
-            font-size: 20px;
-            font-family: 'Courier New', monospace;
+            width: 100px;
+            height: 23px;
+            background: linear-gradient(to bottom, #ece9d8, #d4d0c8);
+            border: 1px outset #ece9d8;
+            color: #000;
+            font-family: 'Tahoma', 'MS Sans Serif', sans-serif;
+            font-size: 11px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 30px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: bold;
-            position: relative;
-            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+            margin: 20px auto 0;
+            display: block;
         }
-        
-        .start-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.2), transparent);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
+
         .start-button:hover {
-            background: linear-gradient(45deg, #003366, #0066cc, #003366);
-            border-color: #00ff00;
-            box-shadow: 0 0 25px #00ff00, inset 0 0 25px rgba(0, 255, 0, 0.1);
-            transform: translateY(-3px);
-            text-shadow: 0 0 15px #00ffff;
+            background: linear-gradient(to bottom, #f5f4f0, #e0ddd6);
         }
-        
-        .start-button:hover::before {
-            opacity: 1;
+
+        .start-button:active {
+            border: 1px inset #ece9d8;
+            background: linear-gradient(to bottom, #d4d0c8, #ece9d8);
         }
-        
+
+        /* Status de redirecionamento */
+        .redirect-status {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: #ffffe1;
+            border: 1px solid #000;
+            color: #000;
+            font-size: 11px;
+            display: none;
+        }
+
         /* Responsividade */
-        @media (max-width: 768px) {
+        @media (max-width: 600px) {
             .config-container {
-                padding: 30px 20px;
-                margin: 20px;
+                width: 95%;
             }
             
-            .config-title {
-                font-size: 24px;
-                letter-spacing: 2px;
-            }
-            
-            .config-input {
-                font-size: 14px;
-                padding: 12px;
-            }
-            
-            .start-button {
+            .window-content {
                 padding: 15px;
-                font-size: 16px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .config-container {
-                padding: 25px 15px;
-                margin: 10px;
-                clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
-            }
-            
-            .config-container::before {
-                clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
-            }
-            
-            .config-title {
-                font-size: 20px;
-                letter-spacing: 1px;
-            }
-            
-            .config-title::after {
-                content: '◊◊◊◊◊◊◊◊◊◊';
-                font-size: 10px;
-            }
-            
-            .toggle-container {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-            
-            .toggle-switch {
-                width: 70px;
-                height: 30px;
-            }
-            
-            .toggle-switch::before {
-                width: 22px;
-                height: 22px;
-            }
-            
-            .toggle-switch:checked::before {
-                transform: translateX(37px);
             }
         }
     </style>
 </head>
 <body>
     <div class="config-container">
-        <div class="config-title">Neural Link Interface</div>
-        
-        <div class="config-description">
-            ░░░ INITIALIZING QUANTUM MATRIX ░░░<br>
-            Configure neural pathways before entering the digital realm...
-        </div>
-        
-        <div class="config-section">
-            <label class="config-label" for="playerNameInput">
-                ◄ Codename_Identifier ►
-            </label>
-            <input 
-                type="text" 
-                id="playerNameInput" 
-                class="config-input"
-                placeholder="[ANONYMOUS_USER.exe]"
-                maxlength="20"
-                autocomplete="off"
-                spellcheck="false"
-            >
-        </div>
-        
-        <div class="config-section">
-            <label class="config-label">
-                ◄ Audio_System.dll ►
-            </label>
-            <div class="toggle-container">
-                <span class="toggle-label">Neural Audio Feed</span>
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <input 
-                        type="checkbox" 
-                        id="audioToggle" 
-                        class="toggle-switch"
-                        checked
-                    >
-                    <span class="toggle-status" id="audioStatus">ONLINE</span>
-                </div>
+        <!-- Barra de título estilo Windows XP -->
+        <div class="title-bar">
+            <div class="window-title">
+                <div class="icon"></div>
+                Configurações do Jogo
+            </div>
+            <div class="window-controls">
+                <div class="window-btn">_</div>
+                <div class="window-btn">□</div>
+                <div class="window-btn">✕</div>
             </div>
         </div>
         
-        <button class="start-button" onclick="initializeGame()">
-            ◄ Execute Program.exe ►
-        </button>
+        <!-- Conteúdo da janela -->
+        <div class="window-content">
+            <div class="config-title">Link's Adventure - Configurações</div>
+            
+            <div class="config-description">
+                Configurar preferências antes de iniciar o jogo...
+            </div>
+            
+            <div class="config-section">
+                <label class="config-label" for="playerNameInput">
+                    Nome do jogador:
+                </label>
+                <input 
+                    type="text" 
+                    id="playerNameInput" 
+                    class="config-input"
+                    placeholder="Digite seu nome..."
+                    maxlength="20"
+                    autocomplete="off"
+                    spellcheck="false"
+                >
+            </div>
+            
+            <div class="config-section">
+                <label class="config-label">
+                    Configurações de áudio:
+                </label>
+                <div class="toggle-container">
+                    <span class="toggle-label">Habilitar som</span>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <input 
+                            type="checkbox" 
+                            id="audioToggle" 
+                            class="toggle-switch"
+                            checked
+                        >
+                        <span class="toggle-status" id="audioStatus">Ligado</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="start-button" onclick="initializeGame()">
+                Iniciar Jogo
+            </button>
+            
+            <div class="redirect-status" id="redirectStatus">
+                Carregando jogo...
+            </div>
+        </div>
     </div>
 
     <script>
@@ -435,11 +329,11 @@
             const status = document.getElementById('audioStatus');
             
             if (toggle.checked) {
-                status.textContent = 'ONLINE';
-                status.style.color = '#00ff00';
+                status.textContent = 'Ligado';
+                status.style.color = '#000';
             } else {
-                status.textContent = 'OFFLINE';
-                status.style.color = '#ff0000';
+                status.textContent = 'Desligado';
+                status.style.color = '#666';
             }
             
             gameConfig.audioEnabled = toggle.checked;
@@ -451,22 +345,81 @@
             const audioToggle = document.getElementById('audioToggle');
             
             // Capturar configurações
-            gameConfig.playerName = playerNameInput.value.trim() || 'Anonymous_User';
+            gameConfig.playerName = playerNameInput.value.trim() || 'Jogador';
             gameConfig.audioEnabled = audioToggle.checked;
             
-            console.log('🚀 Neural matrix configuration:', gameConfig);
+            console.log('🚀 Configuração do jogo:', gameConfig);
+            console.log('📊 Estado do toggle de áudio:', audioToggle.checked);
+            console.log('📊 gameConfig.audioEnabled:', gameConfig.audioEnabled);
             
-            // Salvar configurações no localStorage para passar para a próxima página
-            localStorage.setItem('gameConfig', JSON.stringify(gameConfig));
+            // Mostrar status de carregamento
+            const redirectStatus = document.getElementById('redirectStatus');
+            redirectStatus.style.display = 'block';
+            redirectStatus.textContent = 'Salvando configurações...';
             
-            // Redirecionar para o jogo
-            window.location.href = 'index.html';
+            // Desabilitar botão para evitar múltiplos cliques
+            const startButton = document.querySelector('.start-button');
+            startButton.disabled = true;
+            startButton.textContent = 'Carregando...';
+            
+            // Testar se localStorage está disponível
+            try {
+                if (typeof(Storage) === "undefined") {
+                    console.error('❌ LocalStorage não está disponível neste navegador!');
+                    alert('Seu navegador não suporta localStorage. Por favor, use um navegador mais recente.');
+                    return;
+                }
+                
+                console.log('✅ LocalStorage está disponível');
+                
+                // Salvar configurações no localStorage para passar para a próxima página
+                const configString = JSON.stringify(gameConfig);
+                console.log('💾 Tentando salvar configuração:', configString);
+                
+                localStorage.setItem('gameConfig', configString);
+                console.log('✅ Configuração salva no localStorage');
+                
+                // Verificar se foi salvo corretamente IMEDIATAMENTE
+                const verificacaoImediata = localStorage.getItem('gameConfig');
+                console.log('🔍 Verificação imediata do localStorage:', verificacaoImediata);
+                
+                if (verificacaoImediata) {
+                    const parsedVerificacao = JSON.parse(verificacaoImediata);
+                    console.log('✅ Configuração verificada e parseada:', parsedVerificacao);
+                    console.log('🔊 Audio enabled na verificação:', parsedVerificacao.audioEnabled);
+                } else {
+                    console.error('❌ ERRO: Configuração não foi salva no localStorage!');
+                    alert('Erro ao salvar configurações. Tente novamente.');
+                    return;
+                }
+                
+                // Aguardar um momento antes de redirecionar para garantir que foi salvo
+                setTimeout(() => {
+                    console.log('🔄 Redirecionando para index.html...');
+                    window.location.href = 'index.html';
+                }, 100);
+                
+            } catch (error) {
+                console.error('❌ Erro ao trabalhar com localStorage:', error);
+                alert('Erro ao salvar configurações: ' + error.message);
+            }
         }
         
         // Inicialização da página de configuração
         function initConfigPage() {
             const audioToggle = document.getElementById('audioToggle');
             const playerNameInput = document.getElementById('playerNameInput');
+            
+            // Teste inicial do localStorage
+            console.log('🧪 Testando localStorage na inicialização...');
+            try {
+                localStorage.setItem('teste', 'funcionando');
+                const testeResult = localStorage.getItem('teste');
+                console.log('✅ Teste localStorage:', testeResult === 'funcionando' ? 'PASSOU' : 'FALHOU');
+                localStorage.removeItem('teste');
+            } catch (e) {
+                console.error('❌ Erro no teste do localStorage:', e);
+            }
             
             // Event listeners
             audioToggle.addEventListener('change', updateAudioToggle);
