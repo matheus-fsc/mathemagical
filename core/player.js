@@ -57,14 +57,20 @@ class Player {
     get height() { return this.baseHeight; }
 
     update(deltaTime, inputManager, joystickData = null) {
-        // Se o player estiver frozen (durante teleporte), não processar movimento
-        if (this.frozen) {
-            this.velocityX = 0;
-            this.velocityY = 0;
-            this.isMoving = false;
-            // Ainda atualizar timers de ataque para manter consistência
-            this.updateAttackTimers(deltaTime);
-            return;
+        try {
+            // Se o player estiver frozen (durante teleporte), não processar movimento
+            if (this.frozen) {
+                this.velocityX = 0;
+                this.velocityY = 0;
+                this.isMoving = false;
+                // Ainda atualizar timers de ataque para manter consistência
+                this.updateAttackTimers(deltaTime);
+                return;
+            }
+        } catch (error) {
+            console.error('❌ ERRO no Player.update:', error);
+            console.error('❌ Stack trace:', error.stack);
+            throw error;
         }
         
         // Converte deltaTime de milissegundos para segundos

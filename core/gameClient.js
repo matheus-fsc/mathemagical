@@ -45,6 +45,36 @@ class GameClient {
         };
         
         this.positionSendInterval = 50; // Enviar posição a cada 50ms máximo
+        
+        // Sistema de câmera para dispositivos menores
+        this.camera = {
+            x: 0,
+            y: 0,
+            targetX: 0,
+            targetY: 0,
+            smoothing: 0.1, // Suavização do movimento da câmera (0.1 = muito suave, 1 = instantâneo)
+            enabled: false,
+            worldWidth: 1600,  // Tamanho do mundo (ajustar conforme necessário)
+            worldHeight: 1200
+        };
+        
+        // Detectar se é dispositivo móvel/pequeno para ativar câmera
+        this.camera.enabled = this.shouldEnableCamera();
+    }
+    
+    // Verificar se deve ativar a câmera baseado no tamanho da tela
+    shouldEnableCamera() {
+        // Ativar câmera em dispositivos com tela pequena ou móveis
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isSmallScreen = window.innerWidth <= 800 || window.innerHeight <= 600;
+        
+        // Também considerar o tamanho atual do canvas
+        if (this.canvas) {
+            const canvasIsSmall = this.canvas.width <= 800 || this.canvas.height <= 600;
+            return isMobile || isSmallScreen || canvasIsSmall;
+        }
+        
+        return isMobile || isSmallScreen;
     }
 
     // Inicializar o cliente
@@ -76,12 +106,23 @@ class GameClient {
             await this.loadSprites();
             await this.areaManager.loadBackgrounds();
             
-            // Criar jogador local (posição inicial no centro do canvas)
-            const initialX = this.canvas.width / 2;
-            const initialY = this.canvas.height / 2;
+            // Criar jogador local (posição inicial)
+            let initialX, initialY;
+            
+            if (this.camera.enabled) {
+                // Para câmera ativa, colocar player no centro do mundo
+                initialX = this.camera.worldWidth / 2;
+                initialY = this.camera.worldHeight / 2;
+            } else {
+                // Para telas grandes, manter posição original
+                initialX = this.canvas.width / 2;
+                initialY = this.canvas.height / 2;
+            }
+            
             this.player = new FrameBasedPlayer(initialX, initialY, this.spriteManager, this.inputManager);
             this.player.canvas = this.canvas; // Adicionar referência do canvas
             this.player.areaManager = this.areaManager; // Adicionar referência do areaManager
+            this.player.gameClient = this; // Adicionar referência do gameClient para acessar câmera
             
             // Configurar eventos de rede
             this.setupNetworkEvents();
@@ -374,15 +415,22 @@ class GameClient {
 
         // Preparar dados do joystick virtual se disponível
         let joystickData = null;
-        if (this.virtualJoystick && this.virtualJoystick.active) {
-            joystickData = {
-                direction: this.virtualJoystick.currentDirection,
-                magnitude: this.virtualJoystick.currentMagnitude
-            };
+        if (this.virtualJoystick) {
+            if (this.virtualJoystick.active) {
+                joystickData = {
+                    direction: this.virtualJoystick.currentDirection,
+                    magnitude: this.virtualJoystick.currentMagnitude
+                };
+            }
         }
 
         // Atualizar jogador local com dados do joystick
-        this.player.update(deltaTime, this.inputManager, joystickData);
+        if (this.player) {
+            this.player.update(deltaTime, this.inputManager, joystickData);
+        }
+        
+        // Atualizar câmera para seguir o jogador
+        this.updateCamera();
         
         // Verificar transições de área
         if (this.areaManager) {
@@ -444,6 +492,69 @@ class GameClient {
         }
     }
 
+    // ===== SISTEMA DE CÂMERA =====
+    
+    // Atualizar posição da câmera para seguir o jogador
+    updateCamera() {
+        if (!this.camera.enabled || !this.player) return;
+        
+        // Calcular posição alvo da câmera (centralizar jogador na tela)
+        this.camera.targetX = this.player.x - this.canvas.width / 2;
+        this.camera.targetY = this.player.y - this.canvas.height / 2;
+        
+        // Limitar câmera aos limites do mundo
+        const maxCameraX = this.camera.worldWidth - this.canvas.width;
+        const maxCameraY = this.camera.worldHeight - this.canvas.height;
+        
+        this.camera.targetX = Math.max(0, Math.min(this.camera.targetX, maxCameraX));
+        this.camera.targetY = Math.max(0, Math.min(this.camera.targetY, maxCameraY));
+        
+        // Aplicar suavização na movimentação da câmera
+        this.camera.x += (this.camera.targetX - this.camera.x) * this.camera.smoothing;
+        this.camera.y += (this.camera.targetY - this.camera.y) * this.camera.smoothing;
+        
+        // Garantir que a posição final da câmera também esteja dentro dos limites
+        this.camera.x = Math.max(0, Math.min(this.camera.x, maxCameraX));
+        this.camera.y = Math.max(0, Math.min(this.camera.y, maxCameraY));
+    }
+    
+    // Aplicar transformação da câmera ao contexto
+    applyCameraTransform() {
+        if (!this.camera.enabled) return;
+        
+        this.ctx.save();
+        this.ctx.translate(-this.camera.x, -this.camera.y);
+    }
+    
+    // Remover transformação da câmera do contexto
+    removeCameraTransform() {
+        if (!this.camera.enabled) return;
+        
+        this.ctx.restore();
+    }
+    
+    // Converter coordenadas de tela para coordenadas do mundo
+    screenToWorld(screenX, screenY) {
+        if (!this.camera.enabled) {
+            return { x: screenX, y: screenY };
+        }
+        return {
+            x: screenX + this.camera.x,
+            y: screenY + this.camera.y
+        };
+    }
+    
+    // Converter coordenadas do mundo para coordenadas de tela
+    worldToScreen(worldX, worldY) {
+        if (!this.camera.enabled) {
+            return { x: worldX, y: worldY };
+        }
+        return {
+            x: worldX - this.camera.x,
+            y: worldY - this.camera.y
+        };
+    }
+
     // Renderizar jogo
     render() {
         // Limpar canvas
@@ -454,6 +565,9 @@ class GameClient {
             return;
         }
 
+        // ===== RENDERIZAR ELEMENTOS DO MUNDO (com câmera) =====
+        this.applyCameraTransform();
+        
         // Renderizar background da área atual
         if (this.areaManager) {
             this.areaManager.renderBackground(this.ctx);
@@ -477,6 +591,10 @@ class GameClient {
             this.mouseManager.renderDebugAreas(this.ctx);
         }
         
+        this.removeCameraTransform();
+        // ===== FIM DOS ELEMENTOS DO MUNDO =====
+        
+        // ===== RENDERIZAR UI (sem câmera) =====
         // Renderizar debug info
         if (this.debug.enabled) {
             this.renderDebugInfo();
@@ -521,7 +639,9 @@ class GameClient {
             `Posição: ${Math.round(this.player.x)}, ${Math.round(this.player.y)}`,
             `Direção: ${this.player.facing}`,
             `Cor: ${this.player.color || 'Padrão'}`,
-            `Modo: ${gameMode}`
+            `Modo: ${gameMode}`,
+            `Câmera: ${this.camera.enabled ? 'Ativa' : 'Inativa'}`,
+            ...(this.camera.enabled ? [`Câmera XY: ${Math.round(this.camera.x)}, ${Math.round(this.camera.y)}`] : [])
         ];
 
         this.ctx.save();

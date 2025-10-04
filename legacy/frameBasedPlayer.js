@@ -76,7 +76,7 @@ class FrameBasedPlayer {
     get width() { return this.baseWidth; }
     get height() { return this.baseHeight; }
 
-    update(deltaTime) {
+    update(deltaTime, inputManager = null, joystickData = null) {
         const dt = deltaTime / 1000;
         
         // Atualiza timers de ataque
@@ -114,7 +114,26 @@ class FrameBasedPlayer {
         this.velocityY = 0;
         this.isMoving = false;
 
-        // Verifica input de movimento
+        // === JOYSTICK VIRTUAL (PRIORIDADE) ===
+        if (joystickData && joystickData.magnitude > 0.1) { // Dead zone de 10%
+            const normalizedSpeed = this.speed * joystickData.magnitude;
+            this.velocityX = joystickData.direction.x * normalizedSpeed;
+            this.velocityY = joystickData.direction.y * normalizedSpeed;
+            
+            // Determinar direção do sprite baseada no movimento dominante
+            if (Math.abs(joystickData.direction.x) > Math.abs(joystickData.direction.y)) {
+                this.facing = joystickData.direction.x > 0 ? 'right' : 'left';
+                this.lastDirection = this.facing;
+            } else {
+                this.facing = joystickData.direction.y > 0 ? 'front' : 'back';
+                this.lastDirection = this.facing;
+            }
+            
+            this.isMoving = true;
+        }
+        // === TECLADO (FALLBACK SE NÃO HOUVER JOYSTICK ATIVO) ===
+        else if (!joystickData || joystickData.magnitude <= 0.1) {
+            // Verifica input de movimento do teclado
         if (this.inputManager && this.inputManager.isPressed('left')) {
             this.velocityX = -this.speed;
             this.facing = 'left';
@@ -142,6 +161,7 @@ class FrameBasedPlayer {
             this.lastDirection = 'front';
             this.isMoving = true;
         }
+        } // Fechamento do bloco else if do teclado
 
         // Aplica movimento com verificação de colisão
         const newX = this.x + this.velocityX * dt;
@@ -156,8 +176,31 @@ class FrameBasedPlayer {
         this.x = finalPosition.x;
         this.y = finalPosition.y;
 
-        // Mantém o jogador dentro da tela (usando dimensões dinâmicas do canvas)
-        if (this.canvas) {
+        // Mantém o jogador dentro dos limites apropriados
+        if (this.gameClient && this.gameClient.camera.enabled) {
+            // Se câmera estiver ativa, limitar jogador aos limites do mundo
+            const worldWidth = this.gameClient.camera.worldWidth;
+            const worldHeight = this.gameClient.camera.worldHeight;
+            
+            // Primeiro limitar aos limites do mundo
+            this.x = Math.max(0, Math.min(this.x, worldWidth - this.baseWidth));
+            this.y = Math.max(0, Math.min(this.y, worldHeight - this.baseHeight));
+            
+            // Depois verificar se está dentro da visualização da câmera
+            const canvas = this.canvas || this.gameClient.canvas;
+            const canvasWidth = canvas ? canvas.width : 800;
+            const canvasHeight = canvas ? canvas.height : 600;
+            
+            const cameraLeft = this.gameClient.camera.x;
+            const cameraTop = this.gameClient.camera.y;
+            const cameraRight = cameraLeft + canvasWidth;
+            const cameraBottom = cameraTop + canvasHeight;
+            
+            // Se o jogador está fora da visualização da câmera, limitá-lo
+            this.x = Math.max(cameraLeft, Math.min(this.x, cameraRight - this.baseWidth));
+            this.y = Math.max(cameraTop, Math.min(this.y, cameraBottom - this.baseHeight));
+        } else if (this.canvas) {
+            // Usar limites do canvas para telas grandes
             this.x = Math.max(0, Math.min(this.x, this.canvas.width - this.baseWidth));
             this.y = Math.max(0, Math.min(this.y, this.canvas.height - this.baseHeight));
         } else {

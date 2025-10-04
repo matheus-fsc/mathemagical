@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 2    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: ws: wss: https: 'unsafe-inline'; connect-src 'self' ws: wss: https: data: blob:;">
-    <title>🗡️ Link's Adventure Blog | A Legendary Journey</title>
+    <title> ??? </title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/png" href="favicon.png">
@@ -32,11 +32,19 @@
         
         #gameCanvas {
             display: block;
-            width: 800px;  /* Largura fixa */
-            height: 600px; /* Altura fixa */
             background: #000;
             border: 2px solid #333;
             image-rendering: pixelated; /* Para manter sprites nítidos */
+            /* Dimensões responsivas - será definido via JavaScript */
+        }
+        
+        /* Responsivo para telas pequenas */
+        @media (max-width: 800px), (max-height: 600px) {
+            #gameCanvas {
+                width: 100vw !important;
+                height: 100vh !important;
+                border: none;
+            }
         }
         
         .debug-info {
@@ -444,7 +452,7 @@
             bottom: 30px;
             left: 30px;
             z-index: 1000;
-            display: none; /* Oculto por padrão, mostrado apenas em mobile */
+            display: none; /* Oculto por padrão - controlado via JavaScript */
             pointer-events: auto;
             user-select: none;
             -webkit-user-select: none;
@@ -750,36 +758,63 @@
                                  'ontouchstart' in window ||
                                  navigator.maxTouchPoints > 0;
                 
-                if (isMobile) {
+                // DEBUG: Forçar exibição para testar
+                const forceShow = true;
+                
+                if (isMobile || forceShow) {
                     this.joystickElement.style.display = 'block';
-                    console.log('📱 Dispositivo móvel detectado - joystick virtual habilitado');
+                    this.joystickElement.style.pointerEvents = 'auto';
+                    console.log('📱 Joystick virtual habilitado (mobile:', isMobile, 'force:', forceShow, ')');
                 } else {
                     this.joystickElement.style.display = 'none';
                     console.log('🖥️ Dispositivo desktop detectado - joystick virtual desabilitado');
                 }
                 
-                return isMobile;
+                return isMobile || forceShow;
             }
             
             setupEvents() {
-                // Touch events para mobile
-                this.baseElement.addEventListener('touchstart', this.onStart.bind(this), { passive: false });
-                this.baseElement.addEventListener('touchmove', this.onMove.bind(this), { passive: false });
-                this.baseElement.addEventListener('touchend', this.onEnd.bind(this), { passive: false });
+                // Sistema simples e direto - sem flags complexas
+                this.baseElement.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    this.startInput(e);
+                });
                 
-                // Mouse events para teste em desktop
-                this.baseElement.addEventListener('mousedown', this.onStart.bind(this));
-                document.addEventListener('mousemove', this.onMove.bind(this));
-                document.addEventListener('mouseup', this.onEnd.bind(this));
+                this.baseElement.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.startInput(e);
+                }, { passive: false });
                 
-                // Prevenir scroll ao tocar no joystick
-                this.baseElement.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+                document.addEventListener('mousemove', (e) => {
+                    if (this.isActive) this.moveInput(e);
+                });
+                
+                document.addEventListener('touchmove', (e) => {
+                    if (this.isActive) this.moveInput(e);
+                }, { passive: false });
+                
+                document.addEventListener('mouseup', (e) => {
+                    if (this.isActive) this.endInput(e);
+                });
+                
+                document.addEventListener('touchend', (e) => {
+                    if (this.isActive) this.endInput(e);
+                }, { passive: false });
+                
+                // Prevenir comportamentos padrão
+                this.baseElement.addEventListener('dragstart', (e) => e.preventDefault());
+                this.baseElement.addEventListener('selectstart', (e) => e.preventDefault());
+                this.baseElement.addEventListener('contextmenu', (e) => e.preventDefault());
             }
             
-            onStart(event) {
-                event.preventDefault();
-                this.isActive = true;
+            startInput(event) {
+                if (this.isActive) {
+                    console.log('❌ Tentativa de ativação dupla ignorada');
+                    return;
+                }
                 
+                console.log('🟢 Iniciando joystick...');
+                this.isActive = true;
                 const touch = event.touches ? event.touches[0] : event;
                 const rect = this.baseElement.getBoundingClientRect();
                 
@@ -794,18 +829,15 @@
                 };
                 
                 this.updateKnobPosition();
-                
-                if (this.onStartCallback) {
-                    this.onStartCallback(this.direction, this.magnitude);
-                }
-                
-                console.log('🕹️ Joystick ativado');
+                console.log('🕹️ Joystick ATIVADO - magnitude:', this.magnitude.toFixed(2), 'direction:', this.direction);
             }
             
-            onMove(event) {
-                if (!this.isActive) return;
+            moveInput(event) {
+                if (!this.isActive) {
+                    console.log('❌ Movimento ignorado - joystick inativo');
+                    return;
+                }
                 
-                event.preventDefault();
                 const touch = event.touches ? event.touches[0] : event;
                 
                 this.currentPos = {
@@ -815,27 +847,45 @@
                 
                 this.updateKnobPosition();
                 
-                if (this.onMoveCallback) {
-                    this.onMoveCallback(this.direction, this.magnitude);
+                if (this.magnitude > 0.1) {
+                    console.log('🕹️ MOVIMENTO - magnitude:', this.magnitude.toFixed(2), 'direction:', 
+                        { x: this.direction.x.toFixed(2), y: this.direction.y.toFixed(2) });
                 }
             }
             
-            onEnd(event) {
-                if (!this.isActive) return;
+            endInput(event) {
+                if (!this.isActive) {
+                    console.log('❌ Tentativa de desativação ignorada - já inativo');
+                    return;
+                }
                 
-                event.preventDefault();
+                console.log('🔴 Desativando joystick...');
                 this.isActive = false;
-                
-                // Retornar knob para o centro
                 this.direction = { x: 0, y: 0 };
                 this.magnitude = 0;
                 this.knobElement.style.transform = 'translate(-50%, -50%)';
                 
-                if (this.onEndCallback) {
-                    this.onEndCallback(this.direction, this.magnitude);
+                console.log('🕹️ Joystick DESATIVADO');
+            }
+            
+            // Método para forçar finalização em casos de emergência
+            forceEnd() {
+                if (this.isActive) {
+                    this.isActive = false;
+                    this.isDragging = false;
+                    this.eventType = null;
+                    
+                    // Retornar knob para o centro
+                    this.direction = { x: 0, y: 0 };
+                    this.magnitude = 0;
+                    this.knobElement.style.transform = 'translate(-50%, -50%)';
+                    
+                    if (this.onEndCallback) {
+                        this.onEndCallback(this.direction, this.magnitude);
+                    }
+                    
+                    console.log('🕹️ Joystick forçadamente desativado');
                 }
-                
-                console.log('🕹️ Joystick desativado');
             }
             
             updateKnobPosition() {
@@ -1251,19 +1301,100 @@
         function setupFixedCanvas() {
             const canvas = document.getElementById('gameCanvas');
             
-            // Definir dimensões fixas (800x600 é um bom tamanho para jogos retrô)
-            const FIXED_WIDTH = 800;
-            const FIXED_HEIGHT = 600;
+            // Configurar dimensões do canvas de forma responsiva
+            let canvasWidth, canvasHeight;
+            
+            // Verificar se é dispositivo pequeno/móvel
+            const isSmallScreen = window.innerWidth <= 800 || window.innerHeight <= 600;
+            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isSmallScreen || isMobile) {
+                // Para dispositivos pequenos, usar toda a tela
+                canvasWidth = window.innerWidth;
+                canvasHeight = window.innerHeight;
+                
+                // Ajustar CSS para fullscreen
+                canvas.style.width = '100vw';
+                canvas.style.height = '100vh';
+                canvas.style.border = 'none';
+                
+                console.log(`Canvas configurado para mobile/pequeno: ${canvasWidth}x${canvasHeight}`);
+            } else {
+                // Para dispositivos grandes, usar tamanho fixo
+                canvasWidth = 800;
+                canvasHeight = 600;
+                
+                // Ajustar CSS para tamanho fixo
+                canvas.style.width = '800px';
+                canvas.style.height = '600px';
+                canvas.style.border = '2px solid #333';
+                
+                console.log(`Canvas configurado para desktop: ${canvasWidth}x${canvasHeight}`);
+            }
             
             // Definir dimensões do canvas
-            canvas.width = FIXED_WIDTH;
-            canvas.height = FIXED_HEIGHT;
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
             
-            console.log(`Canvas configurado com tamanho fixo: ${canvas.width}x${canvas.height}`);
+            // Controlar visibilidade inicial do joystick virtual
+            const virtualJoystick = document.getElementById('virtualJoystick');
+            if (virtualJoystick) {
+                if (isSmallScreen || isMobile) {
+                    virtualJoystick.style.display = 'block';
+                } else {
+                    virtualJoystick.style.display = 'none';
+                }
+            }
             
             // Salvar dimensões como constantes globais para fácil acesso
-            window.GAME_WIDTH = FIXED_WIDTH;
-            window.GAME_HEIGHT = FIXED_HEIGHT;
+            window.GAME_WIDTH = canvasWidth;
+            window.GAME_HEIGHT = canvasHeight;
+            
+            // Função para redimensionar canvas dinamicamente
+            function resizeCanvas() {
+                const isSmallScreen = window.innerWidth <= 800 || window.innerHeight <= 600;
+                const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                const shouldShowJoystick = isSmallScreen || isMobile;
+                
+                if (shouldShowJoystick) {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                    canvas.style.width = '100vw';
+                    canvas.style.height = '100vh';
+                    canvas.style.border = 'none';
+                } else {
+                    canvas.width = 800;
+                    canvas.height = 600;
+                    canvas.style.width = '800px';
+                    canvas.style.height = '600px';
+                    canvas.style.border = '2px solid #333';
+                }
+                
+                // Controlar visibilidade do joystick virtual
+                const virtualJoystick = document.getElementById('virtualJoystick');
+                if (virtualJoystick) {
+                    if (shouldShowJoystick) {
+                        virtualJoystick.style.display = 'block';
+                    } else {
+                        virtualJoystick.style.display = 'none';
+                    }
+                }
+                
+                // Atualizar constantes globais
+                window.GAME_WIDTH = canvas.width;
+                window.GAME_HEIGHT = canvas.height;
+                
+                // Atualizar sistema de câmera se existe
+                if (window.gameClient && window.gameClient.camera) {
+                    window.gameClient.camera.enabled = window.gameClient.shouldEnableCamera();
+                }
+            }
+            
+            // Listener para redimensionamento
+            window.addEventListener('resize', resizeCanvas);
+            window.addEventListener('orientationchange', () => {
+                setTimeout(resizeCanvas, 100); // Delay para orientação estabilizar
+            });
         }
                 
         } catch (error) {
