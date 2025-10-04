@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configurações - Link's Adventure</title>
+    <title>Settings</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     
     <style>
@@ -256,7 +256,7 @@
         <div class="title-bar">
             <div class="window-title">
                 <div class="icon"></div>
-                Configurações do Jogo
+                Game Settings
             </div>
             <div class="window-controls">
                 <div class="window-btn">_</div>
@@ -267,10 +267,10 @@
         
         <!-- Conteúdo da janela -->
         <div class="window-content">
-            <div class="config-title">Link's Adventure - Configurações</div>
+            <div class="config-title">Link's Adventure - Settings</div>
             
             <div class="config-description">
-                Configurar preferências antes de iniciar o jogo...
+                Configure preferences before starting the game...
             </div>
             
             <div class="config-section">
@@ -317,132 +317,132 @@
     </div>
 
     <script>
-        // Configurações do jogo
+        // Game configuration
         let gameConfig = {
             playerName: '',
             audioEnabled: true
         };
         
-        // Atualizar status do toggle de áudio
+        // Update audio toggle status
         function updateAudioToggle() {
             const toggle = document.getElementById('audioToggle');
             const status = document.getElementById('audioStatus');
             
             if (toggle.checked) {
-                status.textContent = 'Ligado';
+                status.textContent = 'Enabled';
                 status.style.color = '#000';
             } else {
-                status.textContent = 'Desligado';
+                status.textContent = 'Disabled';
                 status.style.color = '#666';
             }
             
             gameConfig.audioEnabled = toggle.checked;
         }
         
-        // Função principal para inicializar o jogo
+        // Main function to initialize the game
         function initializeGame() {
             const playerNameInput = document.getElementById('playerNameInput');
             const audioToggle = document.getElementById('audioToggle');
             
-            // Capturar configurações
-            gameConfig.playerName = playerNameInput.value.trim() || 'Jogador';
+            // Capture settings
+            gameConfig.playerName = playerNameInput.value.trim() || 'Player';
             gameConfig.audioEnabled = audioToggle.checked;
             
-            console.log('🚀 Configuração do jogo:', gameConfig);
-            console.log('📊 Estado do toggle de áudio:', audioToggle.checked);
+            console.log('🚀 Game configuration:', gameConfig);
+            console.log('📊 Audio toggle state:', audioToggle.checked);
             console.log('📊 gameConfig.audioEnabled:', gameConfig.audioEnabled);
             
-            // Mostrar status de carregamento
+            // Show loading status
             const redirectStatus = document.getElementById('redirectStatus');
             redirectStatus.style.display = 'block';
-            redirectStatus.textContent = 'Salvando configurações...';
+            redirectStatus.textContent = 'Saving settings...';
             
-            // Desabilitar botão para evitar múltiplos cliques
+            // Disable button to prevent multiple clicks
             const startButton = document.querySelector('.start-button');
             startButton.disabled = true;
-            startButton.textContent = 'Carregando...';
+            startButton.textContent = 'Loading...';
             
-            // Testar se localStorage está disponível
+            // Test if localStorage is available
             try {
                 if (typeof(Storage) === "undefined") {
-                    console.error('❌ LocalStorage não está disponível neste navegador!');
-                    alert('Seu navegador não suporta localStorage. Por favor, use um navegador mais recente.');
+                    console.error('❌ LocalStorage is not available in this browser!');
+                    alert('Your browser does not support localStorage. Please use a newer browser.');
                     return;
                 }
                 
-                console.log('✅ LocalStorage está disponível');
+                console.log('✅ LocalStorage is available');
                 
-                // Salvar configurações no localStorage para passar para a próxima página
+                // Save settings to localStorage to pass to the next page
                 const configString = JSON.stringify(gameConfig);
-                console.log('💾 Tentando salvar configuração:', configString);
+                console.log('💾 Trying to save configuration:', configString);
                 
                 localStorage.setItem('gameConfig', configString);
-                console.log('✅ Configuração salva no localStorage');
+                console.log('✅ Configuration saved to localStorage');
                 
-                // Verificar se foi salvo corretamente IMEDIATAMENTE
-                const verificacaoImediata = localStorage.getItem('gameConfig');
-                console.log('🔍 Verificação imediata do localStorage:', verificacaoImediata);
+                // Check if it was saved correctly IMMEDIATELY
+                const immediateVerification = localStorage.getItem('gameConfig');
+                console.log('🔍 Immediate localStorage verification:', immediateVerification);
                 
-                if (verificacaoImediata) {
-                    const parsedVerificacao = JSON.parse(verificacaoImediata);
-                    console.log('✅ Configuração verificada e parseada:', parsedVerificacao);
-                    console.log('🔊 Audio enabled na verificação:', parsedVerificacao.audioEnabled);
+                if (immediateVerification) {
+                    const parsedVerification = JSON.parse(immediateVerification);
+                    console.log('✅ Configuration verified and parsed:', parsedVerification);
+                    console.log('🔊 Audio enabled in verification:', parsedVerification.audioEnabled);
                 } else {
-                    console.error('❌ ERRO: Configuração não foi salva no localStorage!');
-                    alert('Erro ao salvar configurações. Tente novamente.');
+                    console.error('❌ ERROR: Configuration was not saved to localStorage!');
+                    alert('Error saving settings. Please try again.');
                     return;
                 }
                 
-                // Aguardar um momento antes de redirecionar para garantir que foi salvo
+                // Wait a moment before redirecting to ensure it was saved
                 setTimeout(() => {
-                    console.log('🔄 Redirecionando para index.html...');
+                    console.log('🔄 Redirecting to index.html...');
                     window.location.href = 'index.html';
                 }, 100);
                 
             } catch (error) {
-                console.error('❌ Erro ao trabalhar com localStorage:', error);
-                alert('Erro ao salvar configurações: ' + error.message);
+                console.error('❌ Error working with localStorage:', error);
+                alert('Error saving settings: ' + error.message);
             }
         }
         
-        // Inicialização da página de configuração
+        // Configuration page initialization
         function initConfigPage() {
             const audioToggle = document.getElementById('audioToggle');
             const playerNameInput = document.getElementById('playerNameInput');
             
-            // Teste inicial do localStorage
-            console.log('🧪 Testando localStorage na inicialização...');
+            // Initial localStorage test
+            console.log('🧪 Testing localStorage on initialization...');
             try {
-                localStorage.setItem('teste', 'funcionando');
-                const testeResult = localStorage.getItem('teste');
-                console.log('✅ Teste localStorage:', testeResult === 'funcionando' ? 'PASSOU' : 'FALHOU');
-                localStorage.removeItem('teste');
+                localStorage.setItem('test', 'working');
+                const testResult = localStorage.getItem('test');
+                console.log('✅ LocalStorage test:', testResult === 'working' ? 'PASSED' : 'FAILED');
+                localStorage.removeItem('test');
             } catch (e) {
-                console.error('❌ Erro no teste do localStorage:', e);
+                console.error('❌ Error in localStorage test:', e);
             }
             
             // Event listeners
             audioToggle.addEventListener('change', updateAudioToggle);
             
-            // Enter para iniciar jogo
+            // Enter to start game
             playerNameInput.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     initializeGame();
                 }
             });
             
-            // Foco automático no input
+            // Auto focus on input
             setTimeout(() => {
                 playerNameInput.focus();
             }, 100);
             
-            // Atualizar status inicial
+            // Update initial status
             updateAudioToggle();
             
             console.log('⚙️ Configuration page initialized');
         }
         
-        // Inicializar quando a página carregar
+        // Initialize when page loads
         window.addEventListener('load', initConfigPage);
     </script>
 </body>

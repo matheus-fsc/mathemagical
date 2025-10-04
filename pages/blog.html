@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,41 +9,41 @@
   
 </head>
 <body>
-    <a href="../index.html" class="back-button">🗡️ Voltar ao Mundo</a>
+    <a href="../index.html" class="back-button">🗡️ Back to World</a>
     
     
 
     <script>
         function showSection(sectionId) {
-            // Esconder todas as seções
+            // Hide all sections
             document.querySelectorAll('.content-section').forEach(section => {
                 section.classList.remove('active');
             });
             
-            // Remover classe active de todos os itens do menu
+            // Remove active class from all menu items
             document.querySelectorAll('.menu-item').forEach(item => {
                 item.classList.remove('active');
             });
             
-            // Mostrar seção selecionada
+            // Show selected section
             document.getElementById(sectionId).classList.add('active');
             
-            // Ativar item do menu correspondente
+            // Activate corresponding menu item
             document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
             
-            // Scroll para o topo da área de conteúdo
+            // Scroll to top of content area
             document.querySelector('.content-area').scrollTop = 0;
         }
 
-        // Adicionar efeito sonoro aos cliques (opcional)
+        // Add sound effect to clicks (optional)
         document.querySelectorAll('.menu-item').forEach(item => {
             item.addEventListener('click', () => {
-                // Aqui poderia adicionar um efeito sonoro de menu do Zelda
+                // Here could add a Zelda menu sound effect
                 console.log('🎵 Menu selection sound');
             });
         });
 
-        // Efeito de teclado para navegação
+        // Keyboard effect for navigation
         document.addEventListener('keydown', (e) => {
             const items = document.querySelectorAll('.menu-item');
             const activeItem = document.querySelector('.menu-item.active');
