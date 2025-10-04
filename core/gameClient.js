@@ -89,6 +89,9 @@ class GameClient {
             // Configurar input
             this.setupInput();
             
+            // Configurar virtual joystick se disponível
+            this.setupVirtualJoystick();
+            
             // Ativar o jogo em modo singleplayer por padrão
             this.gameState.isGameRunning = true;
             
@@ -316,6 +319,17 @@ class GameClient {
         };
     }
 
+    // Configurar virtual joystick se disponível
+    setupVirtualJoystick() {
+        // O VirtualJoystick já será atribuído durante a inicialização do jogo
+        // Verificar se foi atribuído corretamente
+        if (this.virtualJoystick) {
+            console.log('🕹️ VirtualJoystick já está conectado ao GameClient');
+        } else {
+            console.log('⚠️ VirtualJoystick não encontrado - será configurado durante inicialização do jogo');
+        }
+    }
+
     // Conectar ao servidor
     async connect(nickname = null) {
         try {
@@ -414,7 +428,10 @@ class GameClient {
         const currentArea = this.areaManager ? this.areaManager.getCurrentArea() : 'down';
         const areaChanged = currentArea !== this.lastSentPosition.area;
 
-        if (posChanged || areaChanged) {
+        // Verificar se o joystick está ativo (forçar envio para garantir movimento suave)
+        const joystickActive = this.virtualJoystick && this.virtualJoystick.active;
+
+        if (posChanged || areaChanged || joystickActive) {
             this.networkManager.sendPosition(
                 currentPos.x,
                 currentPos.y,
