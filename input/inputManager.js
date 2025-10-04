@@ -28,6 +28,13 @@ class InputManager {
     
     setupEventListeners() {
         document.addEventListener('keydown', (e) => {
+            // Não interferir se o usuário está digitando em um input, textarea ou elemento editável
+            if (e.target.tagName === 'INPUT' || 
+                e.target.tagName === 'TEXTAREA' || 
+                e.target.contentEditable === 'true') {
+                return;
+            }
+            
             const key = e.key.toLowerCase();
             
             // Executar handlers específicos se existirem
@@ -45,6 +52,13 @@ class InputManager {
         });
         
         document.addEventListener('keyup', (e) => {
+            // Não interferir se o usuário está digitando em um input, textarea ou elemento editável
+            if (e.target.tagName === 'INPUT' || 
+                e.target.tagName === 'TEXTAREA' || 
+                e.target.contentEditable === 'true') {
+                return;
+            }
+            
             const key = e.key.toLowerCase();
             if (this.keyMappings[key]) {
                 e.preventDefault();

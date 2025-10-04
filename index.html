@@ -69,6 +69,8 @@
             z-index: 10000;
             font-family: 'Courier New', monospace;
             overflow: hidden;
+            /* Suporte para safe areas em dispositivos móveis */
+            padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
         }
         
         .game-config-modal::before {
@@ -372,6 +374,210 @@
             padding: 10px;
             border: 1px dashed #00ffff;
             background: rgba(0, 255, 255, 0.05);
+        }
+        
+        /* ===== RESPONSIVIDADE Y2K SCI-FI ===== */
+        
+        /* Tablets Portrait */
+        @media (max-width: 768px) {
+            .game-config-content {
+                padding: 30px 20px;
+                max-width: 90%;
+                margin: 20px;
+            }
+            
+            .game-config-title {
+                font-size: 24px;
+                letter-spacing: 2px;
+            }
+            
+            .config-input {
+                font-size: 14px;
+                padding: 10px;
+            }
+            
+            .start-game-button {
+                padding: 15px 25px;
+                font-size: 16px;
+                letter-spacing: 1px;
+            }
+            
+            .toggle-switch {
+                width: 70px;
+                height: 28px;
+            }
+            
+            .toggle-switch::before {
+                width: 20px;
+                height: 20px;
+                top: 2px;
+                left: 2px;
+            }
+            
+            .toggle-switch:checked::before {
+                transform: translateX(42px);
+            }
+        }
+        
+        /* Mobile Portrait */
+        @media (max-width: 480px) {
+            .game-config-modal {
+                padding: 10px;
+                align-items: flex-start;
+                padding-top: 50px;
+            }
+            
+            .game-config-content {
+                padding: 25px 15px;
+                max-width: 95%;
+                margin: 10px;
+                clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+            }
+            
+            .game-config-content::before {
+                clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+            }
+            
+            .game-config-title {
+                font-size: 20px;
+                letter-spacing: 1px;
+                margin-bottom: 15px;
+            }
+            
+            .game-config-title::after {
+                content: '◊◊◊◊◊◊◊◊◊◊';
+                font-size: 10px;
+                margin-top: 8px;
+            }
+            
+            .config-description {
+                font-size: 12px;
+                padding: 8px;
+                margin-bottom: 20px;
+            }
+            
+            .config-section {
+                margin: 20px 0;
+                padding: 12px;
+            }
+            
+            .config-label {
+                font-size: 14px;
+                margin-bottom: 8px;
+            }
+            
+            .config-input {
+                font-size: 14px;
+                padding: 10px;
+                clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+            }
+            
+            .toggle-container {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+                padding: 8px;
+            }
+            
+            .toggle-label {
+                font-size: 14px;
+            }
+            
+            .toggle-switch {
+                width: 60px;
+                height: 26px;
+                align-self: center;
+            }
+            
+            .toggle-switch::before {
+                width: 18px;
+                height: 18px;
+                top: 2px;
+                left: 2px;
+            }
+            
+            .toggle-switch:checked::before {
+                transform: translateX(34px);
+            }
+            
+            .toggle-status {
+                font-size: 12px;
+                text-align: center;
+                min-width: auto;
+            }
+            
+            .start-game-button {
+                padding: 12px 20px;
+                font-size: 14px;
+                letter-spacing: 1px;
+                margin-top: 20px;
+                clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+            }
+        }
+        
+        /* Mobile Landscape */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .game-config-modal {
+                padding: 20px 10px;
+                align-items: center;
+            }
+            
+            .game-config-content {
+                max-width: 80%;
+                padding: 20px;
+            }
+            
+            .game-config-title {
+                font-size: 22px;
+                margin-bottom: 10px;
+            }
+            
+            .config-description {
+                font-size: 12px;
+                margin-bottom: 15px;
+            }
+            
+            .config-section {
+                margin: 15px 0;
+                padding: 10px;
+            }
+        }
+        
+        /* Very Small Screens */
+        @media (max-width: 320px) {
+            .game-config-content {
+                padding: 20px 10px;
+            }
+            
+            .game-config-title {
+                font-size: 18px;
+                letter-spacing: 0.5px;
+            }
+            
+            .config-input {
+                font-size: 13px;
+                padding: 8px;
+            }
+            
+            .start-game-button {
+                padding: 10px 15px;
+                font-size: 13px;
+            }
+        }
+        
+        /* High DPI Displays */
+        @media (-webkit-min-device-pixel-ratio: 2) {
+            .game-config-content {
+                border-width: 1px;
+            }
+            
+            .config-input {
+                border-width: 1px;
+            }
+            
+            .toggle-switch {
+                border-width: 1px;
+            }
         }
         
         /* ===== VIRTUAL JOYSTICK STYLES ===== */
@@ -877,6 +1083,7 @@
         }
         
         // Função principal para iniciar o jogo com configurações
+        // Função principal para iniciar o jogo com configurações
         function startGameWithConfig() {
             const playerNameInput = document.getElementById('playerNameInput');
             const audioToggle = document.getElementById('audioToggle');
@@ -892,20 +1099,29 @@
             if (gameConfig.audioEnabled) {
                 enableAudio();
             } else {
-            console.log('🔇 Áudio desabilitado pelo usuário');
-            audioEnabled = false;
-        }
-        
-        // Esconder modal com efeito
-        if (modal) {
-            modal.style.animation = 'fadeOutMatrix 0.5s ease-out forwards';
-            setTimeout(() => {
-                modal.style.display = 'none';
-            }, 500);
-        }            // Aplicar nome do jogador se o gameClient já existir
+                console.log('🔇 Áudio desabilitado pelo usuário');
+                audioEnabled = false;
+            }
+            
+            // Aplicar nome do jogador se o gameClient já existir
             if (gameClient) {
                 gameClient.gameState.nickname = gameConfig.playerName;
+                // Também atualizar o player se existir
+                if (gameClient.player) {
+                    gameClient.player.nickname = gameConfig.playerName;
+                }
                 console.log(`👤 Nome do jogador definido: ${gameConfig.playerName}`);
+            } else {
+                // Se gameClient ainda não existe, salvar para aplicar depois
+                console.log(`👤 Nome será aplicado quando o jogo inicializar: ${gameConfig.playerName}`);
+            }
+            
+            // Esconder modal com efeito
+            if (modal) {
+                modal.style.animation = 'fadeOutMatrix 0.5s ease-out forwards';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 500);
             }
             
             console.log('🚀 Jogo iniciado com configurações personalizadas!');
@@ -952,10 +1168,10 @@
                 gameClient = new GameClient();
                 await gameClient.init('gameCanvas');  // Inicializar gameClient primeiro
                 
-                // Aplicar nome do jogador das configurações
-                if (gameConfig.playerName) {
+                // Aplicar nome do jogador das configurações se disponível
+                if (gameConfig && gameConfig.playerName) {
                     gameClient.gameState.nickname = gameConfig.playerName;
-                    console.log(`👤 Nome do jogador aplicado: ${gameConfig.playerName}`);
+                    console.log(`👤 Nome do jogador aplicado na inicialização: ${gameConfig.playerName}`);
                 }
                 
                 // Inicializar sistema de componentes
