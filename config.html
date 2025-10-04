@@ -275,13 +275,13 @@
             
             <div class="config-section">
                 <label class="config-label" for="playerNameInput">
-                    Nome do jogador:
+                    Player Nickname:
                 </label>
                 <input 
                     type="text" 
                     id="playerNameInput" 
                     class="config-input"
-                    placeholder="Digite seu nome..."
+                    placeholder="your nickname ( leave black for anonymus )"
                     maxlength="20"
                     autocomplete="off"
                     spellcheck="false"
@@ -290,10 +290,10 @@
             
             <div class="config-section">
                 <label class="config-label">
-                    Configurações de áudio:
+                    Audio Settings:
                 </label>
                 <div class="toggle-container">
-                    <span class="toggle-label">Habilitar som</span>
+                    <span class="toggle-label">Enable Sound</span>
                     <div style="display: flex; align-items: center; gap: 15px;">
                         <input 
                             type="checkbox" 
@@ -301,17 +301,17 @@
                             class="toggle-switch"
                             checked
                         >
-                        <span class="toggle-status" id="audioStatus">Ligado</span>
+                        <span class="toggle-status" id="audioStatus">Enabled</span>
                     </div>
                 </div>
             </div>
             
             <button class="start-button" onclick="initializeGame()">
-                Iniciar Jogo
+                Enter in Game
             </button>
             
             <div class="redirect-status" id="redirectStatus">
-                Carregando jogo...
+                Loading game...
             </div>
         </div>
     </div>
